@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "aws-sso-lib"
+version = "1.8.0" # change in aws_sso_lib/__init__.py too
+description = "Library to make AWS SSO easier"
+authors = ["Ben Kehoe <ben@kehoe.io>"]
+license = "Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/benkehoe/aws-sso-util"
+repository = "https://github.com/benkehoe/aws-sso-util"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Topic :: Utilities",
+    "Topic :: Software Development :: Libraries"
+]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+# botocore = {git = "https://github.com/boto/botocore.git", rev = "v2"}
+boto3 = "^1.17.20"
+aws-error-utils = "^1.0.4"
+
+[tool.poetry.dev-dependencies]
+pylint = "^2.5.2"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
