@@ -20,7 +20,7 @@ python3 -m pip install .
 ```
 2. Learn to know the available options.
 ```bash
-    `aws-sso-magic` 
+    `aws-sso-magic --help` 
 ```
 
 ## Documentation
