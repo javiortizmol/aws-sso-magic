@@ -11,8 +11,18 @@ The underlying Python library for AWS SSO authentication is [`aws-sso-lib`](http
 
 ## Quickstart
 
-1. 
+I recommended you install python 3.9 and pip.
+
+1. Install 
+On this folder, please execute the following command: 
+```bash
+python3 -m pip install .
+```
+2. Learn to know the available options.
+```bash
+    `aws-sso-magic` 
+```
 
 ## Documentation
 
-See the full docs at [https://github.com/emed/aws-sso-magic](https://github.com/emed/aws-sso-magic)
+See the full docs at [https://github.com/javiortizmol/aws-sso-magic](https://github.com/javiortizmol/aws-sso-magic)
