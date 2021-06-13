@@ -18,7 +18,6 @@ from . import __version__
 from .configure import configure
 from .login import login
 from .logout import logout
-from .utils import _check_aws_v2
 
 @click.group(name="aws-sso-magic")
 @click.version_option(version=__version__, message='%(version)s')
