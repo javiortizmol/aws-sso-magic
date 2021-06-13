@@ -1,36 +1,44 @@
-import hashlib
-import json
-import re
+# Copyright 2020 Javier Ortiz
+#
+# Licensed under the Apache License, Version 2.0 (the "License"). You
+# may not use this file except in compliance with the License. A copy of
+# the License is located at
+#
+# http://aws.amazon.com/apache2.0/
+#
+# or in the "license" file accompanying this file. This file is
+# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+# ANY KIND, either express or implied. See the License for the specific
+# language governing permissions and limitations under the License.
+
 import os
-import subprocess
 import sys
 import logging
-import boto3
 import botocore
 import click
 
 from collections import namedtuple
-from configparser import ConfigParser
-from datetime import datetime, timedelta
-from pathlib import Path
 from dateutil.parser import parse
-from dateutil.tz import UTC, tzlocal
 from dateutil.parser import parse
 from dateutil.tz import tzlocal
-from aws_sso_lib.compat import shell_join
 from aws_sso_lib.sso import get_token_fetcher
 from aws_sso_lib.config_file_writer import ConfigFileWriter, write_values, get_config_filename, process_profile_name
 from botocore.session import Session
 from botocore.exceptions import ProfileNotFound
-from botocore.compat import compat_shell_split as shell_split
 from .utils import configure_logging, get_instance, GetInstanceError
+from .utils import generate_profile_name_format, get_formatter, get_process_formatter
+from .utils import get_trim_formatter, get_safe_account_name, get_config_profile_list
+from .utils import _set_profile_credentials, _add_prefix
+from .utils import (
+    AWS_DEFAULT_REGION,
+    VERBOSE
+)
 
 LOGGER = logging.getLogger(__name__)
 
 DEFAULT_SEPARATOR = "."
 UTC_TIME_FORMAT = "%Y-%m-%d %H:%M UTC"
 LOCAL_TIME_FORMAT = "%Y-%m-%d %H:%M %Z"
-VERBOSE_MODE = True
 
 CONFIGURE_DEFAULT_START_URL_VARS  = ["AWS_CONFIGURE_SSO_DEFAULT_SSO_START_URL", "AWS_SSO_CONFIGURE_DEFAULT_SSO_START_URL", "AWS_CONFIGURE_DEFAULT_SSO_START_URL"]
 CONFIGURE_DEFAULT_SSO_REGION_VARS = ["AWS_CONFIGURE_SSO_DEFAULT_SSO_REGION",    "AWS_SSO_CONFIGURE_DEFAULT_SSO_REGION",    "AWS_CONFIGURE_DEFAULT_SSO_REGION"]
@@ -38,274 +46,8 @@ CONFIGURE_DEFAULT_REGION_VARS     = ["AWS_CONFIGURE_DEFAULT_REGION", "AWS_DEFAUL
 LOGIN_DEFAULT_START_URL_VARS      = ["AWS_SSO_LOGIN_DEFAULT_SSO_START_URL"]
 LOGIN_DEFAULT_SSO_REGION_VARS     = ["AWS_SSO_LOGIN_DEFAULT_SSO_REGION"]
 LOGIN_ALL_VAR = "AWS_SSO_LOGIN_ALL"
-KNOWN_COMPONENTS = [
-    "account_name",
-    "account_id",
-    "account_number",
-    "role_name",
-    "region",
-    "short_region",
-]
-PROCESS_FORMATTER_ARGS = [
-    "account_name",
-    "account_id",
-    "role_name",
-    "region",
-    "short_region",
-    "region_index",
-    "num_regions",
-]
-
-AWS_CONFIG_PATH = f'{Path.home()}/.aws/config'
-AWS_CREDENTIAL_PATH = f'{Path.home()}/.aws/credentials'
-AWS_SSO_CACHE_PATH = f'{Path.home()}/.aws/sso/cache'
-AWS_DEFAULT_REGION = 'us-east-1'
 
 ConfigParams = namedtuple("ConfigParams", ["profile_name", "account_name", "account_id", "role_name", "region"])
-
-class Colour:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-def get_short_region(region):
-    area, direction, num = region.split("-")
-    dir_abbr = {
-        "north": "no",
-        "northeast": "ne",
-        "east": "ea",
-        "southeast": "se",
-        "south": "so",
-        "southwest": "sw",
-        "west": "we",
-        "northwest": "nw",
-        "central": "ce",
-    }
-    return "".join([area, dir_abbr.get(direction, direction), num])
-
-def generate_profile_name_format(input, separator, region_style):
-    def process_component(c):
-        if c == "default_style_region":
-            if region_style == "short":
-                c = "short_region"
-            else:
-                c = "region"
-        if c in KNOWN_COMPONENTS:
-            return "{" + c + "}"
-        else:
-            return c
-    region_format = separator.join(process_component(c) for c in input.split(","))
-    no_region_format = separator.join(process_component(c) for c in input.split(",") if c not in ["default_style_region", "region", "short_region"])
-    return region_format, no_region_format
-
-def get_formatter(include_region, region_format, no_region_format):
-    def proc_kwargs(kwargs):
-        kwargs["short_region"] = get_short_region(kwargs["region"])
-        kwargs["account_number"] = kwargs["account_id"]
-        return kwargs
-    if include_region == "default":
-        def formatter(i, n, **kwargs):
-            kwargs = proc_kwargs(kwargs)
-            if i == 0:
-                return no_region_format.format(**kwargs)
-            else:
-                return region_format.format(**kwargs)
-        return formatter
-    elif include_region == "always":
-        def formatter(i, n, **kwargs):
-            kwargs = proc_kwargs(kwargs)
-            return region_format.format(**kwargs)
-        return formatter
-    else:
-        raise ValueError("Unknown include_region value {}".format(include_region))
-
-def get_process_formatter(command):
-    def formatter(i, n, **kwargs):
-        kwargs["region_index"] = str(i)
-        kwargs["num_regions"] = str(n)
-        kwargs["short_region"] = get_short_region(kwargs["region"])
-        run_args = shell_split(command)
-        for component in PROCESS_FORMATTER_ARGS:
-            run_args.append(kwargs[component])
-        try:
-            result = subprocess.run(shell_join(run_args), shell=True, stdout=subprocess.PIPE, check=True)
-        except subprocess.CalledProcessError as e:
-            lines = [
-                "Profile name process failed ({})".format(e.returncode)
-            ]
-            if e.stdout:
-                lines.append(e.stdout.decode("utf-8"))
-            if e.stderr:
-                lines.append(e.stderr.decode("utf-8"))
-            LOGGER.error("\n".join(lines))
-            raise e
-        return result.stdout.decode("utf-8").strip()
-    return formatter
-
-def get_trim_formatter(account_name_patterns, role_name_patterns, formatter):
-    def trim_formatter(i, n, **kwargs):
-        for pattern in account_name_patterns:
-            kwargs["account_name"] = re.sub(pattern, "", kwargs["account_name"])
-        for pattern in role_name_patterns:
-            kwargs["role_name"] = re.sub(pattern, "", kwargs["role_name"])
-        return formatter(i, n, **kwargs)
-    return trim_formatter
-
-def get_safe_account_name(name):
-    return re.sub(r"[\s\[\]]+", "-", name).strip("-")
-
-def get_config_profile_list(configs):
-    print(" ")
-    print("*****************************************")
-    print("*******  AWS CLI CONFIG PROFILES  *******" )
-    print("*****************************************")
-    print(" ")
-    print("Option - Profile ")
-    for c in configs:
-        conf_number = configs.index(c) + 1
-        LOGGER.info("   {}   - {}".format(conf_number, c.profile_name))
-    print(" ")
-    print("*****************************************")
-    print(" ")
-    config_option = int(input('Enter the config profile option: '))
-    config_option = config_option - 1
-    try:
-        config_profile = configs[config_option].profile_name
-    except IndexError as e:
-        raise click.UsageError("Option selected not valid")
-    return config_profile
-
-def _set_profile_credentials(profile_name, use_default=False):
-    profile_opts = _get_aws_profile(profile_name)
-    cache_login = _get_sso_cached_login(profile_opts)
-    credentials = _get_sso_role_credentials(profile_opts, cache_login)
-
-    if not use_default:
-        _store_aws_credentials(profile_name, profile_opts, credentials)
-    else:
-        _store_aws_credentials('default', profile_opts, credentials)
-        _copy_to_default_profile(profile_name)
-
-def _copy_to_default_profile(profile_name):
-    _print_msg(f'Copying profile [{profile_name}] to [default]')
-
-    config = _read_config(AWS_CONFIG_PATH)
-
-    if config.has_section('default'):
-        config.remove_section('default')
-
-    config.add_section('default')
-
-    for key, value in config.items(profile_name):
-        config.set('default', key, value)
-
-    _write_config(AWS_CONFIG_PATH, config)
-
-def _get_aws_profile(profile_name):
-    _print_msg(f'\nReading profile: [{profile_name}]')
-    config = _read_config(AWS_CONFIG_PATH)
-    profile_opts = config.items(profile_name)
-    profile = dict(profile_opts)
-    return profile
-
-def _get_sso_cached_login(profile):
-    _print_msg('\nChecking for SSO credentials...')
-
-    cache = hashlib.sha1(profile["sso_start_url"].encode("utf-8")).hexdigest()
-    sso_cache_file = f'{AWS_SSO_CACHE_PATH}/{cache}.json'
-
-    if not Path(sso_cache_file).is_file():
-        _print_error(
-            'Current cached SSO login is invalid/missing. Login with the AWS CLI tool or use --login')
-
-    else:
-        data = _load_json(sso_cache_file)
-        now = datetime.now().astimezone(UTC)
-        expires_at = parse(data['expiresAt']).astimezone(UTC)
-
-        if data.get('region') != profile['sso_region']:
-            _print_error(
-                'SSO authentication region in cache does not match region defined in profile')
-
-        if now > expires_at:
-            _print_error(
-                'SSO credentials have expired. Please re-validate with the AWS CLI tool or --login option.')
-
-        if (now + timedelta(minutes=15)) >= expires_at:
-            _print_warn('Your current SSO credentials will expire in less than 15 minutes!')
-
-        _print_success(f'Found credentials. Valid until {expires_at.astimezone(tzlocal())}')
-        return data
-
-def _get_sso_role_credentials(profile, login):
-    _print_msg('\nFetching short-term CLI/Boto3 session token...')
-    client = boto3.client('sso', region_name=profile['sso_region'])
-    response = client.get_role_credentials(
-        roleName=profile['sso_role_name'],
-        accountId=profile['sso_account_id'],
-        accessToken=login['accessToken'],
-    )
-    expires = datetime.utcfromtimestamp(response['roleCredentials']['expiration'] / 1000.0).astimezone(UTC)
-    _print_success(f'Got session token. Valid until {expires.astimezone(tzlocal())}')
-    return response["roleCredentials"]
-
-def _store_aws_credentials(profile_name, profile_opts, credentials):
-    _print_msg(f'\nAdding to credential files under [{profile_name}]')
-    region = profile_opts.get("region", AWS_DEFAULT_REGION)
-    config = _read_config(AWS_CREDENTIAL_PATH)
-    if config.has_section(profile_name):
-        config.remove_section(profile_name)
-
-    config.add_section(profile_name)
-    config.set(profile_name, "region", region)
-    config.set(profile_name, "aws_access_key_id", credentials["accessKeyId"])
-    config.set(profile_name, "aws_secret_access_key ", credentials["secretAccessKey"])
-    config.set(profile_name, "aws_session_token", credentials["sessionToken"])
-    _write_config(AWS_CREDENTIAL_PATH, config)
-
-def _write_config(path, config):
-    with open(path, "w") as destination:
-        config.write(destination)    
-
-def _read_config(path):
-    config = ConfigParser()
-    config.read(path)
-    return config
-
-def _add_prefix(name):
-    return f'profile {name}' if name != 'default' else 'default'
-
-def _load_json(path):
-    try:
-        with open(path) as context:
-            return json.load(context)
-    except ValueError:
-        pass  # skip invalid json    
-
-def _print_colour(colour, message, always=False):
-    if always or VERBOSE_MODE:
-        if os.environ.get('CLI_NO_COLOR', False):
-            print(message)
-        else:
-            print(''.join([colour, message, Colour.ENDC]))    
-
-def _print_msg(message):
-    _print_colour(Colour.OKBLUE, message)
-
-def _print_warn(message):
-    _print_colour(Colour.WARNING, message, always=True) 
-
-def _print_error(message):
-    _print_colour(Colour.FAIL, message, always=True)
-    sys.exit(1)
-
-def _print_success(message):
-    _print_colour(Colour.OKGREEN, message)    
 
 @click.command("login")
 @click.option("--sso-start-url", "-u", metavar="URL", help="Your AWS SSO start URL")
@@ -533,7 +275,7 @@ def login(
 
     LOGGER.info(f"AWS config profile option selected: {profile}")
 
-    global VERBOSE_MODE
+    global VERBOSE
 
     _set_profile_credentials(profile, True)
 

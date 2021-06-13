@@ -15,7 +15,7 @@ import click
 
 from . import __version__
 
-#from .credential_process import credential_process
+from .configure import configure
 from .login import login
 from .logout import logout
 
@@ -30,6 +30,7 @@ def cli():
 #     pass
 
 # menu options
+cli.add_command(configure)
 cli.add_command(login)
 cli.add_command(logout)
 
