@@ -25,6 +25,7 @@ from aws_sso_lib.sso import get_token_fetcher
 from aws_sso_lib.config_file_writer import ConfigFileWriter, write_values, get_config_filename, process_profile_name
 from botocore.session import Session
 from botocore.exceptions import ProfileNotFound
+from .utils import _check_aws_v2
 from .utils import configure_logging, get_instance, GetInstanceError
 from .utils import generate_profile_name_format, get_formatter, get_process_formatter
 from .utils import get_trim_formatter, get_safe_account_name, get_config_profile_list
@@ -90,6 +91,7 @@ def login(
     as all profiles sharing the same start URL will share the same login.
     """
     configure_logging(LOGGER, verbose)
+    _check_aws_v2()
 
     missing = []
 
@@ -272,8 +274,6 @@ def login(
         write_config(config.profile_name, config_values)
 
     profile = _add_prefix(get_config_profile_list(configs))
-
-    LOGGER.info(f"AWS config profile option selected: {profile}")
 
     global VERBOSE
 

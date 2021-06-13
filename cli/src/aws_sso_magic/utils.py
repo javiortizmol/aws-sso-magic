@@ -204,6 +204,21 @@ class Printer:
             prev_row = row
             first_loop = False
 
+# Check Utils
+def _check_aws_v2():
+    # validate aws v2
+    try:
+        aws_version = subprocess.run(['aws']+ ['--version'], capture_output=True).stdout.decode('utf-8')
+        if 'aws-cli/2' not in aws_version:
+            _print_error('\nAWS CLI Version 2 not found. Please install. Exiting.')
+            exit(1)
+        else:
+            print('\nAWS CLI Version 2 found. ')
+    except Exception as e:
+        _print_error(
+            f'\nAn error occured trying to find AWS CLI version. Do you have AWS CLI Version 2 installed?\n{e}')
+        exit(1)            
+
 # AWS SSO Login Utils
 def get_short_region(region):
     area, direction, num = region.split("-")
@@ -298,20 +313,23 @@ def get_config_profile_list(configs):
     print("*****************************************")
     print("*******  AWS CLI CONFIG PROFILES  *******" )
     print("*****************************************")
-    print(" ")
     print("Option - Profile ")
     for c in configs:
         conf_number = configs.index(c) + 1
-        LOGGER.info("   {}   - {}".format(conf_number, c.profile_name))
-    print(" ")
+        print(f"   {conf_number}   - {c.profile_name}")
     print("*****************************************")
-    print(" ")
-    config_option = int(input('Enter the config profile option: '))
-    config_option = config_option - 1
+    try:
+        config_option = int(input('Enter the config profile option: '))
+        config_option = config_option - 1
+    except ValueError:
+        _print_error('Please enter a number')
+        sys.exit(1)        
     try:
         config_profile = configs[config_option].profile_name
+        print(f"\nAWS config profile option selected: {config_profile}")
     except IndexError as e:
-        raise click.UsageError("Option selected not valid")
+        _print_error('Option selected not valid')
+        sys.exit(1) 
     return config_profile
 
 
@@ -323,7 +341,7 @@ def _read_config(path):
 
 def _write_config(path, config):
     with open(path, "w") as destination:
-        config.write(destination)   
+        config.write(destination)
 
 def _load_json(path):
     try:
@@ -355,7 +373,7 @@ def _set_profile_credentials(profile_name, use_default=False):
         _copy_to_default_profile(profile_name)
 
 def _copy_to_default_profile(profile_name):
-    _print_msg(f'Copying profile [{profile_name}] to [default]')
+    print(f'Copying profile [{profile_name}] to [default]')
 
     config = _read_config(AWS_CONFIG_PATH)
 
@@ -368,16 +386,17 @@ def _copy_to_default_profile(profile_name):
         config.set('default', key, value)
 
     _write_config(AWS_CONFIG_PATH, config)
+    print("\nCredentials copied successfully") 
 
 def _get_aws_profile(profile_name):
-    _print_msg(f'\nReading profile: [{profile_name}]')
+    print(f'\nReading profile: [{profile_name}]')
     config = _read_config(AWS_CONFIG_PATH)
     profile_opts = config.items(profile_name)
     profile = dict(profile_opts)
     return profile
 
 def _get_sso_cached_login(profile):
-    _print_msg('\nChecking for SSO credentials...')
+    print('\nChecking for SSO credentials...')
 
     cache = hashlib.sha1(profile["sso_start_url"].encode("utf-8")).hexdigest()
     sso_cache_file = f'{AWS_SSO_CACHE_PATH}/{cache}.json'
@@ -402,11 +421,11 @@ def _get_sso_cached_login(profile):
         if (now + timedelta(minutes=15)) >= expires_at:
             _print_warn('Your current SSO credentials will expire in less than 15 minutes!')
 
-        _print_success(f'Found credentials. Valid until {expires_at.astimezone(tzlocal())}')
+        print(f'Found credentials. Valid until {expires_at.astimezone(tzlocal())}')
         return data
 
 def _get_sso_role_credentials(profile, login):
-    _print_msg('\nFetching short-term CLI/Boto3 session token...')
+    print('\nFetching short-term CLI/Boto3 session token...')
     client = boto3.client('sso', region_name=profile['sso_region'])
     response = client.get_role_credentials(
         roleName=profile['sso_role_name'],
@@ -414,11 +433,11 @@ def _get_sso_role_credentials(profile, login):
         accessToken=login['accessToken'],
     )
     expires = datetime.utcfromtimestamp(response['roleCredentials']['expiration'] / 1000.0).astimezone(UTC)
-    _print_success(f'Got session token. Valid until {expires.astimezone(tzlocal())}')
+    print(f'Got session token. Valid until {expires.astimezone(tzlocal())}')
     return response["roleCredentials"]
 
 def _store_aws_credentials(profile_name, profile_opts, credentials):
-    _print_msg(f'\nAdding to credential files under [{profile_name}]')
+    print(f'\nAdding to credential files under [{profile_name}]')
     region = profile_opts.get("region", AWS_DEFAULT_REGION)
     config = _read_config(AWS_CREDENTIAL_PATH)
     if config.has_section(profile_name):

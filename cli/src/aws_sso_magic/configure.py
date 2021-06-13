@@ -16,7 +16,7 @@ import logging
 import click
 import sys
 
-from .utils import configure_logging
+from .utils import _check_aws_v2, configure_logging
 from .utils import (
     AWS_CONFIG_PATH
 )
@@ -32,6 +32,7 @@ def configure():
     as all profiles sharing the same start URL will share the same login.
     """    
     configure_logging(LOGGER, False)
+    _check_aws_v2()
     
     try:
         subprocess.run(['aws'] + [ 'configure', 'sso'], stderr=sys.stderr, stdout=sys.stdout, check=True)
