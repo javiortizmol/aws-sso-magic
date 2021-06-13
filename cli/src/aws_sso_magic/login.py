@@ -85,7 +85,7 @@ def login(
         safe_account_names,
         force_refresh,
         verbose):
-    """Log in to an AWS SSO instance.
+    """Log in to the AWS SSO instance.
 
     Note this only needs to be done once for a given SSO instance (i.e., start URL),
     as all profiles sharing the same start URL will share the same login.

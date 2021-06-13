@@ -33,7 +33,7 @@ def _default_profile_exists(config):
 @click.command("logout")
 
 def logout():
-    """Log out of an AWS SSO instance.
+    """Log out of the AWS SSO instance.
 
     Note this only needs to be done once for a given SSO instance (i.e., start URL),
     as all profiles sharing the same start URL will share the same login.
