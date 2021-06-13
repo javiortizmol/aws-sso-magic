@@ -6,7 +6,7 @@ import sys
 
 from configparser import ConfigParser
 from pathlib import Path
-from .utils import configure_logging, get_instance, GetInstanceError
+from .utils import configure_logging
 
 LOGGER = logging.getLogger(__name__)
 

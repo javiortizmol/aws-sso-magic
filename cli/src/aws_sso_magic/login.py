@@ -16,14 +16,12 @@ from pathlib import Path
 from dateutil.parser import parse
 from dateutil.tz import UTC, tzlocal
 from dateutil.parser import parse
-from dateutil.tz import tzlocal, tzutc
-from aws_sso_lib.compat import shell_quote, shell_join
-from aws_sso_lib.config import find_instances, SSOInstance
+from dateutil.tz import tzlocal
+from aws_sso_lib.compat import shell_join
 from aws_sso_lib.sso import get_token_fetcher
-from aws_sso_lib.exceptions import PendingAuthorizationExpiredError
 from aws_sso_lib.config_file_writer import ConfigFileWriter, write_values, get_config_filename, process_profile_name
 from botocore.session import Session
-from botocore.exceptions import ClientError, ProfileNotFound
+from botocore.exceptions import ProfileNotFound
 from botocore.compat import compat_shell_split as shell_split
 from .utils import configure_logging, get_instance, GetInstanceError
 
