@@ -19,7 +19,7 @@ This is a Docker implementation mixing the  original repositories:
     - [Dockerfile](cli/Dockerfile) - The docker file with the instructions to build the aws-sso-magic cli.
 
 - [lib](lib) - Libraries used on the cli, they exists on [aws-sso-util](https://github.com/benkehoe/aws-sso-util) too.
-    - [aws_sso_lib](lib/aws_sso_lib) - allows you to programmatically interact with AWS SSO.
+    - [aws_sso_lib](lib/aws_sso_lib) - Allows you to programmatically interact with AWS SSO.
 
 ## How to use
 
