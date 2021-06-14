@@ -78,4 +78,5 @@ aws-sso-magic --help
 ``` 
 
 # Docker Hub
-[aws_sso_magic](https://hub.docker.com/r/javiortizmol/aws_sso_magic)
+- [All Repositories](https://hub.docker.com/u/javiortizmol)
+- [aws_sso_magic](https://hub.docker.com/r/javiortizmol/aws_sso_magic)
