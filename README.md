@@ -1,6 +1,6 @@
 # aws-sso-magic cli in Docker
 
-This is a Docker implementation mixing the  original repositories:
+This is a Docker implementation mixing the original repositories, getting the sso credentials from the sso login:
 
 1. [aws-sso-util](https://github.com/benkehoe/aws-sso-util) AWS SSO has some rough edges, and aws-sso-util is here to smooth them out, hopefully temporarily until AWS makes it better.
 2. [aws-sso-credentials](https://github.com/NeilJed/aws-sso-credentials) A simple Python tool to simplify getting short-term credential tokens for CLI/Boto3 operations when using AWS SSO.
@@ -40,16 +40,16 @@ This is a Docker implementation mixing the  original repositories:
         docker run --rm -it -v $env:userprofile\.aws:/root/.aws -v %cd%\aws aws_sso_magic configure
         ```         
 
-2. Once you built the docker image locally, you are able to run the following command to the aws sso configuration.
+2. To do the login/logout, please execute the following command.
     - Linux/MacOS
         ```bash
-        docker run --rm -it -v ~/.aws:/root/.aws -v $(pwd):/aws aws_sso_magic aws-sso-magic configure
+        docker run --rm -it -v ~/.aws:/root/.aws -v $(pwd):/aws aws_sso_magic aws-sso-magic login
         ```
     - Windows CMD
         ```bash
-        docker run --rm -it -v %userprofile%\.aws:/root/.aws -v %cd%\aws aws_sso_magic configure
+        docker run --rm -it -v %userprofile%\.aws:/root/.aws -v %cd%\aws aws_sso_magic login
         ```
     - Windows PowerShell
         ```bash
-        docker run --rm -it -v $env:userprofile\.aws:/root/.aws -v %cd%\aws aws_sso_magic configure
+        docker run --rm -it -v $env:userprofile\.aws:/root/.aws -v %cd%\aws aws_sso_magic login
         ```  
