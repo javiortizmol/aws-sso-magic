@@ -53,3 +53,20 @@ This is a Docker implementation mixing the original repositories, updating the a
         ```bash
         docker run --rm -it -v $env:userprofile\.aws:/root/.aws -v %cd%\aws aws_sso_magic login
         ```  
+
+# Shorten the Docker command
+
+To shorten the Docker aws-sso-magic command, on your operating system's create an alias in Linux and macOS, or doskey in Windows. To set the aws-sso-magic alias, you can run one of the following commands.
+
+- Linux/MacOS
+    ```bash
+    docker run --rm -it -v ~/.aws:/root/.aws -v $(pwd):/aws aws_sso_magic aws-sso-magic login
+    ```
+- Windows CMD
+    ```bash
+    docker run --rm -it -v %userprofile%\.aws:/root/.aws -v %cd%\aws aws_sso_magic login
+    ```
+- Windows PowerShell
+  ```bash
+  docker run --rm -it -v $env:userprofile\.aws:/root/.aws -v %cd%\aws aws_sso_magic login
+  ```  
