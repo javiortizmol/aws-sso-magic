@@ -64,9 +64,9 @@ To shorten the Docker aws-sso-magic command, on your operating system's create a
     ```
 - Windows CMD
     ```bash
-    doskey aws-sso-magic=docker run --rm -it -v %userprofile%\.aws:/root/.aws -v %cd%\aws aws_sso_magic
+    doskey aws-sso-magic=docker run --rm -it -v %userprofile%\.aws:/root/.aws -v %cd%\aws aws_sso_magic aws-sso-magic
     ```    
 - Windows PowerShell
     ```bash
-    Set-Alias -Name aws-sso-magic -Value 'docker run --rm -it -v $env:userprofile\.aws:/root/.aws -v %cd%\aws aws_sso_magic'
+    Set-Alias -Name aws-sso-magic -Value 'docker run --rm -it -v $env:userprofile\.aws:/root/.aws -v %cd%\aws aws_sso_magic aws-sso-magic'
     ```  
