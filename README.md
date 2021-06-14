@@ -1,6 +1,6 @@
 # aws-sso-magic cli in Docker
 
-This is a Docker implementation mixing the original repositories, updating the aws credentials file from the sso login:
+This is a Docker implementation mixing the original repositories, updating the aws credentials file for the default profile from the sso login:
 
 1. [aws-sso-util](https://github.com/benkehoe/aws-sso-util) AWS SSO has some rough edges, and aws-sso-util is here to smooth them out, hopefully temporarily until AWS makes it better.
 2. [aws-sso-credentials](https://github.com/NeilJed/aws-sso-credentials) A simple Python tool to simplify getting short-term credential tokens for CLI/Boto3 operations when using AWS SSO.
