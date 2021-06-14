@@ -24,7 +24,13 @@ This is a Docker implementation mixing the  original repositories:
 ## How to use
 
 1. Once you built the docker image locally, you are able to run the following command to the aws sso configuration.
-    ```bash
-    docker run --rm -it -v ~/.aws:/root/.aws aws_sso_magic aws-sso-magic configure
-    ```
+    - Linux/MacOS
+        ```bash
+        docker run --rm -it -v ~/.aws:/root/.aws -v $(pwd):/aws aws_sso_magic aws-sso-magic configure
+        ```
+    - Windows CMD
+        ```bash
+        docker run --rm -it -v %userprofile%\.aws:/root/.aws -v %cd%\aws aws_sso_magic configure
+        ```    
+
 2. Execute `docker-compose up` (Better to not use `-d` option, for getting the login URL in the logs and stopping the container in a easier way)
