@@ -11,7 +11,7 @@ This is a Docker implementation mixing the  original repositories:
     - [src](cli/src) - The main folder with the aws_sso_magic folder with the .py files & the requirements.txt.
         - [aws_sso_magic](cli/src/aws_sso_magic)
         - [requirements.txt](cli/src/requirements.txt)
-    - [docker-build.sh](cli/docker-build.sh) - A docker build tool to build the docker image locally.
+    - [docker-build.sh](cli/docker-build.sh) - A docker build tool (Linux/MacOS) to build the docker image locally.
         ```bash
         sudo ./docker-build.sh
         ```
