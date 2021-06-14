@@ -31,6 +31,12 @@ This is a Docker implementation mixing the  original repositories:
     - Windows CMD
         ```bash
         docker run --rm -it -v %userprofile%\.aws:/root/.aws -v %cd%\aws aws_sso_magic configure
+        ```
+    - Windows PowerShell
+        ```bash
+        docker run --rm -it -v $env:userprofile\.aws:/root/.aws -v %cd%\aws aws_sso_magic configure
         ```    
+
+Set-Alias -Name aws -Value 'docker run --rm -it -v $env:userprofile\.aws:/root/.aws -v %cd%\aws amazon/aws-cli:2.0.6 $*'        
 
 2. Execute `docker-compose up` (Better to not use `-d` option, for getting the login URL in the logs and stopping the container in a easier way)
