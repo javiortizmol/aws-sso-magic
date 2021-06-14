@@ -26,6 +26,7 @@ This is a Docker implementation mixing the  original repositories:
 1. Once you built the docker image locally, you are able to run the following command to the aws sso configuration.
 
 NOTE: On this step execution, you will need to have the sso url start.
+
     - Linux/MacOS
         ```bash
         docker run --rm -it -v ~/.aws:/root/.aws -v $(pwd):/aws aws_sso_magic aws-sso-magic configure
