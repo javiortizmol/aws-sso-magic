@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "aws-sso-magic"
-version = "1.0.0" # change in aws_sso_util/__init__.py too
+version = "1.0.0" # change in aws_sso_magic/__init__.py too
 description = "Magic credentials on the AWS CLI home using AWS SSO login"
-authors = ["Ben Kehoe <ben@kehoe.io>"]
+authors = ["Javier Ortiz <jahor2@gmail.com>"]
 license = "Apache-2.0"
-homepage = "https://github.com/benkehoe/aws-sso-util"
-repository = "https://github.com/benkehoe/aws-sso-util"
+homepage = "https://github.com/javiortizmol/aws-sso-magic"
+repository = "https://github.com/javiortizmol/aws-sso-magic"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
