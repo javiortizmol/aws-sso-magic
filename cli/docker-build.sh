@@ -19,7 +19,6 @@ docker build -t $DOCKER_IMAGE_NAME .
 docker tag $DOCKER_IMAGE_NAME $DOCKER_IMAGE_NAME:$VERSION >/dev/null
 docker tag $DOCKER_IMAGE_NAME $DOCKER_IMAGE_NAME:latest >/dev/null
 
-
 docker tag $DOCKER_IMAGE_NAME $DOCKER_REPO_REMOTE:$VERSION >/dev/null
 docker tag $DOCKER_IMAGE_NAME $DOCKER_REPO_REMOTE:latest >/dev/null
 
