@@ -1,28 +1,27 @@
-# aws-sso-magic
-## Magic credentials on the AWS CLI home using AWS SSO login
+# aws-sso-magic cli in Docker
 
-[AWS SSO](https://aws.amazon.com/single-sign-on/) has some rough edges, and `aws-sso-magic` is here to smooth them out, hopefully temporarily until AWS makes it better.
+This is a Docker implementation mixing the  original repositories:
 
-`aws-sso-magic` contains utilities for the following:
-* Configuring `.aws/config`
-* Logging in/out
+1. [aws-sso-util](https://github.com/benkehoe/aws-sso-util) AWS SSO has some rough edges, and aws-sso-util is here to smooth them out, hopefully temporarily until AWS makes it better.
+2. [aws-sso-credentials](https://github.com/NeilJed/aws-sso-credentials) A simple Python tool to simplify getting short-term credential tokens for CLI/Boto3 operations when using AWS SSO.
 
-The underlying Python library for AWS SSO authentication is [`aws-sso-lib`](https://pypi.org/project/aws-sso-lib/), which has useful functions like interactive login, creating a boto3 session for specific a account and role, and the programmatic versions of the `lookup` functions in `aws-sso-magic`.
+## Content of the repository
 
-## Quickstart
+- [cli](cli) - The cli code built in python 3.9., pyproject.toml, Dockerfile & docker-build.sh util.
+    - [src](cli/src) - The main folder with the aws_sso_magic folder with the .py files & the requirements.txt.
+        - [aws_sso_magic](cli/src/aws_sso_magic)
+        - [requirements.txt](cli/src/requirements.txt)
+    - [docker-build.sh](cli/docker-build.sh) - A docker build tool (Linux/MacOS) to build the docker image locally.
+        ```bash
+        sudo ./docker-build.sh
+        ```
+    - [pyproject.toml](cli/pyproject.toml) - The metadata file with the dependencies and application information.    
+    - [Dockerfile](cli/Dockerfile) - The docker file with the instructions to build the aws-sso-magic cli.
 
-I recommended you install python 3.9 and pip.
+- [lib](lib) - Libraries used on the cli, they exists on [aws-sso-util](https://github.com/benkehoe/aws-sso-util) too.
+    - [aws_sso_lib](lib/aws_sso_lib) - Allows you to programmatically interact with AWS SSO.
 
-1. Install 
-On this folder, please execute the following command: 
-```bash
-python3 -m pip install .
-```
-2. Learn to know the available options.
-```bash
-    `aws-sso-magic --help` 
-```
+## How to use
 
-## Documentation
-
-See the full docs at [https://github.com/javiortizmol/aws-sso-magic](https://github.com/javiortizmol/aws-sso-magic)
+1. Place AWS configuration file at the same folder of `docker-compose.yml`, naming it `vpn.conf`
+1. Execute `docker-compose up` (Better to not use `-d` option, for getting the login URL in the logs and stopping the container in a easier way)
