@@ -8,7 +8,8 @@ This is a Docker implementation mixing the  original repositories:
 ## Content of the repository
 
 - [cli](cli) - 
-- [lib](lib) - 
+- [lib](lib) - Libraries used on the cli.
+    - [aws_sso_lib](lib/aws_sso_lib) - 
 
 ## How to use
 
