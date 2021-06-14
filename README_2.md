@@ -8,7 +8,12 @@ This is a Docker implementation mixing the  original repositories:
 ## Content of the repository
 
 - [cli](cli) - The cli code built in python 3.9., pyproject.toml, Dockerfile & docker-build.sh util.
-    - [src](cli/src) -  
+    - [src](cli/src) - The main folder with the aws_sso_magic folder with the .py files & the requirements.txt.
+    - [docker-build.sh](cli/docker-build.sh) - A docker build tool to build the docker image locally.
+    
+    ```bash
+    python3 -m pip install .
+    ```
 - [lib](lib) - Libraries used on the cli, they exists on [aws-sso-util](https://github.com/benkehoe/aws-sso-util) too.
     - [aws_sso_lib](lib/aws_sso_lib) - allows you to programmatically interact with AWS SSO.
 
