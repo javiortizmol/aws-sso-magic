@@ -24,4 +24,4 @@ This is a Docker implementation mixing the  original repositories:
 ## How to use
 
 1. Place AWS configuration file at the same folder of `docker-compose.yml`, naming it `vpn.conf`
-1. Execute `docker-compose up` (Better to not use `-d` option, for getting the login URL in the logs and stopping the container in a easier way)
+2. Execute `docker-compose up` (Better to not use `-d` option, for getting the login URL in the logs and stopping the container in a easier way)
