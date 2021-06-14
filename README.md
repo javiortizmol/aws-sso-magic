@@ -25,7 +25,7 @@ This is a Docker implementation mixing the  original repositories:
 
 1. Once you built the docker image locally, you are able to run the following command to the aws sso configuration.
 
-#NOTE:
+### NOTE:
 
     - Linux/MacOS
         ```bash
