@@ -12,7 +12,6 @@
 # language governing permissions and limitations under the License.
 
 import boto3
-import click
 import hashlib
 import json
 import logging
@@ -22,6 +21,7 @@ import re
 import subprocess
 import sys
 
+from prettytable import PrettyTable
 from datetime import datetime, timedelta
 from pathlib import Path
 from configparser import ConfigParser
@@ -309,17 +309,14 @@ def get_safe_account_name(name):
 
 def get_config_profile_list(configs):
     configure_logging(LOGGER, False)
-    print(" ")
-    print("*****************************************")
-    print("*******  AWS CLI CONFIG PROFILES  *******" )
-    print("*****************************************")
-    print("Option - Profile ")
+    result = PrettyTable()
+    result.field_names = ["Option", "Role"]
     for c in configs:
         conf_number = configs.index(c) + 1
-        print(f"   {conf_number}   - {c.profile_name}")
-    print("*****************************************")
+        result.add_row([conf_number, c.profile_name])
+    print (result)
     try:
-        config_option = int(input('Enter the config profile option: '))
+        config_option = int(input('Enter the role option: '))
         config_option = config_option - 1
     except ValueError:
         _print_error('Please enter a number')

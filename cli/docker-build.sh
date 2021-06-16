@@ -26,3 +26,8 @@ if [ "$DOCKER_SLUG_REPO" != "" ]; then
     docker push $DOCKER_REPO_REMOTE:latest
     docker push $DOCKER_REPO_REMOTE:$VERSION
 fi
+
+if [ "$1" == "run" ]; then
+    echo "INFO: Running the docker container from the docker-build tool.."
+    docker run --rm -it -v ~/.aws:/root/.aws -v $(pwd):/aws $DOCKER_IMAGE_NAME aws-sso-magic login
+fi
