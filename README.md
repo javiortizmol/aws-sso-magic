@@ -31,29 +31,29 @@ This Docker solution mixed the following repositories:
 
     - Linux/MacOS
         ```bash
-        docker run --rm -it -v ~/.aws:/root/.aws -v $(pwd):/aws aws_sso_magic aws-sso-magic configure
+        docker run --rm -it -v ~/.aws:/root/.aws aws_sso_magic aws-sso-magic configure
         ```
     - Windows CMD
         ```bash
-        docker run --rm -it -v %userprofile%\.aws:/root/.aws -v %cd%\aws aws_sso_magic configure
+        docker run --rm -it -v %userprofile%\.aws:/root/.aws aws_sso_magic configure
         ```
     - Windows PowerShell
         ```bash
-        docker run --rm -it -v $env:userprofile\.aws:/root/.aws -v %cd%\aws aws_sso_magic configure
+        docker run --rm -it -v $env:userprofile\.aws:/root/.aws aws_sso_magic configure
         ```         
 
 2. To do the login/logout, please execute the following command.
     - Linux/MacOS
         ```bash
-        docker run --rm -it -v ~/.aws:/root/.aws -v $(pwd):/aws aws_sso_magic aws-sso-magic login
+        docker run --rm -it -v ~/.aws:/root/.aws aws_sso_magic aws-sso-magic login
         ```
     - Windows CMD
         ```bash
-        docker run --rm -it -v %userprofile%\.aws:/root/.aws -v %cd%\aws aws_sso_magic login
+        docker run --rm -it -v %userprofile%\.aws:/root/.aws aws_sso_magic login
         ```
     - Windows PowerShell
         ```bash
-        docker run --rm -it -v $env:userprofile\.aws:/root/.aws -v %cd%\aws aws_sso_magic login
+        docker run --rm -it -v $env:userprofile\.aws:/root/.aws aws_sso_magic login
         ```  
 
 ## Shorten the Docker command
@@ -62,15 +62,15 @@ To shorten the Docker aws-sso-magic command, on your operating system's create a
 
 - Linux/MacOS
     ```bash
-    alias aws-sso-magic='docker run --rm -it -v ~/.aws:/root/.aws -v $(pwd):/aws aws_sso_magic aws-sso-magic'    
+    alias aws-sso-magic='docker run --rm -it -v ~/.aws:/root/.aws aws_sso_magic aws-sso-magic'    
     ```
 - Windows CMD
     ```bash
-    doskey aws-sso-magic=docker run --rm -it -v %userprofile%\.aws:/root/.aws -v %cd%\aws aws_sso_magic aws-sso-magic
+    doskey aws-sso-magic=docker run --rm -it -v %userprofile%\.aws:/root/.aws aws_sso_magic aws-sso-magic
     ```    
 - Windows PowerShell
     ```bash
-    Set-Alias -Name aws-sso-magic -Value 'docker run --rm -it -v $env:userprofile\.aws:/root/.aws -v %cd%\aws aws_sso_magic aws-sso-magic'
+    Set-Alias -Name aws-sso-magic -Value 'docker run --rm -it -v $env:userprofile\.aws:/root/.aws aws_sso_magic aws-sso-magic'
     ```  
 
 You will be able to execute the --help or --version to test the alias:
