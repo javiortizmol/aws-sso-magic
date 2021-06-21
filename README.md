@@ -16,14 +16,18 @@ This Docker solution mixed the following repositories:
     - [docker-build.sh](cli/docker-build.sh) - A docker build tool (Linux/MacOS) to build the docker image locally.
         ```bash
         sudo ./docker-build.sh
-        ```
+        ```     
     - [pyproject.toml](cli/pyproject.toml) - The metadata file with the dependencies and application information.    
     - [Dockerfile](cli/Dockerfile) - The docker file with the instructions to build the aws-sso-magic cli.
 
 - [lib](lib) - Libraries used on the cli, they exists on [aws-sso-util](https://github.com/benkehoe/aws-sso-util) too.
     - [aws_sso_lib](lib/aws_sso_lib) - Allows you to programmatically interact with AWS SSO.
 
-## How to use
+## How to use with pyp installer
+
+1. Follow the pyp [aw-sso-magic](https://pypi.org/project/aws-sso-magic/) project instructions.
+
+## How to use with Docker
 
 1. Once you built the docker image locally, you are able to run the following command to the aws sso configuration. 
 
