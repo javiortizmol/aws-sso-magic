@@ -6,6 +6,9 @@
 *.exe
 *.war
 
+# Local paths
+*/dist/*
+
 # Large media files
 *.mp4
 *.tiff
