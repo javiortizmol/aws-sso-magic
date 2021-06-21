@@ -32,6 +32,8 @@ upload(){
     test="$1"
     if [ "$test" == "True" ]; then
         artifact_repository=$python_test_repo
+    else
+        artifact_repository=$python_repo
     fi
     echo "INFO: Uploading the artifacts to the $artifact_repository repository.."
     $python_version -m twine upload --repository $artifact_repository $build_path
