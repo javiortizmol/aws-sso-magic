@@ -27,6 +27,8 @@ This Docker solution mixed the following repositories:
 
 1. Follow the pyp [aw-sso-magic](https://pypi.org/project/aws-sso-magic/) project instructions.
 
+    NOTE: You will need the aws cli v2 installed previously.
+
 ## How to use with Docker
 
 1. Once you built the docker image locally, you are able to run the following command to the aws sso configuration. 
