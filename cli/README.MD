@@ -2,7 +2,7 @@
 
 ## Prerequisites
 1. [Python 3.9](https://www.python.org/downloads/) installed.
-2. [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) installed.
+2. [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) installed, please click on the link depending of your OS.
 
 ## Installation Steps
 1. `pip install aws-sso-magic`
