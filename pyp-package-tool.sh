@@ -17,14 +17,16 @@ buid_path_delete(){
     if [ -d $build_folder ]; then
         echo "INFO: Deleting $build_folder"
         rm -rf $build_folder
+        sleep 3
     else
-        echo "INFO: $build_folder folder not foundNothing"
+        echo "INFO: $build_folder folder not found"
     fi
 }
 
 build(){
     echo "INFO: Building the artifacts.."
     $python_version -m build
+    sleep 5
     echo "INFO: the Artifacts was  built successfully"
 }
 

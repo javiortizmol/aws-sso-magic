@@ -65,7 +65,7 @@ def configure_logging(logger, verbose, **config_args):
 
     logging.basicConfig(**config_args)
 
-    aws_sso_util_logger = logging.getLogger("aws_sso_magic")
+    aws_sso_magic_logger = logging.getLogger("aws_sso_magic")
     aws_sso_lib_logger = logging.getLogger("aws_sso_lib")
     root_logger = logging.getLogger()
 
@@ -77,21 +77,21 @@ def configure_logging(logger, verbose, **config_args):
         logger.setLevel(logging.INFO)
     elif verbose == 1:
         logger.setLevel(logging.DEBUG)
-        aws_sso_util_logger.setLevel(logging.INFO)
+        aws_sso_magic_logger.setLevel(logging.INFO)
         aws_sso_lib_logger.setLevel(logging.INFO)
     elif verbose == 2:
         logger.setLevel(logging.DEBUG)
-        aws_sso_util_logger.setLevel(logging.DEBUG)
+        aws_sso_magic_logger.setLevel(logging.DEBUG)
         aws_sso_lib_logger.setLevel(logging.INFO)
         root_logger.setLevel(logging.INFO)
     elif verbose == 3:
         logger.setLevel(logging.DEBUG)
-        aws_sso_util_logger.setLevel(logging.DEBUG)
+        aws_sso_magic_logger.setLevel(logging.DEBUG)
         aws_sso_lib_logger.setLevel(logging.DEBUG)
         root_logger.setLevel(logging.INFO)
     elif verbose >= 4:
         logger.setLevel(logging.DEBUG)
-        aws_sso_util_logger.setLevel(logging.DEBUG)
+        aws_sso_magic_logger.setLevel(logging.DEBUG)
         aws_sso_lib_logger.setLevel(logging.DEBUG)
         root_logger.setLevel(logging.DEBUG)
 
@@ -469,7 +469,3 @@ def _print_error(message):
 
 def _print_success(message):
     _print_colour(Colour.OKGREEN, message)    
-
-
-if __name__ == "__main__":
-    utils(prog_name="python -m aws_sso_magic.utils")

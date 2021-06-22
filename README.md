@@ -1,4 +1,5 @@
-# aws-sso-magic cli in Docker
+#
+# aws-sso-magic tool cli 
 
 This Docker image updates the aws credentials file for the default profile from the aws sso login. At the moment you should copy/paste the url in your browser and complete the login process.
 
@@ -9,19 +10,31 @@ This Docker solution mixed the following repositories:
 
 ## Content of the repository
 
-- [cli](cli) - The cli code built in python 3.9., pyproject.toml, Dockerfile & docker-build.sh util.
-    - [src](cli/src) - The main folder with the aws_sso_magic folder with the .py files & the requirements.txt.
-        - [aws_sso_magic](cli/src/aws_sso_magic)
-        - [requirements.txt](cli/src/requirements.txt)
-    - [docker-build.sh](cli/docker-build.sh) - A docker build tool (Linux/MacOS) to build the docker image locally.
-        ```bash
-        sudo ./docker-build.sh
-        ```     
-    - [pyproject.toml](cli/pyproject.toml) - The metadata file with the dependencies and application information.    
-    - [Dockerfile](cli/Dockerfile) - The docker file with the instructions to build the aws-sso-magic cli.
+- [src](src) - The main folder with the aws_sso_magic folder with the .py files & the requirements.txt.
+    - [aws_sso_magic](src/aws_sso_magic)
+- [docker-build.sh](cli/docker-build.sh) - A docker build tool (Linux/MacOS) to build the docker image locally.
+    ```bash
+    sudo ./docker-build.sh
+    ```     
+- [pyproject.toml](pyproject.toml) - The metadata file with the dependencies and application information.    
+- [Dockerfile](Dockerfile) - The docker file with the instructions to build the aws-sso-magic cli.
 
-- [lib](lib) - Libraries used on the cli, they exists on [aws-sso-util](https://github.com/benkehoe/aws-sso-util) too.
-    - [aws_sso_lib](lib/aws_sso_lib) - Allows you to programmatically interact with AWS SSO.
+#
+# Installing aws-sso-magic tool from [pyp.org](https://pypi.org/project/aws-sso-magic/)
+
+## Prerequisites
+1. [Python 3.9](https://www.python.org/downloads/) installed.
+2. [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) installed, please click on the link depending of your OS.
+
+## Installation Steps
+1. `pip install aws-sso-magic`
+
+## How to use
+
+1. Execute the following command to configure the sso tool: `aws-sso-magic configure`
+2. Type the sso url, sso_region, and the rest of information.
+3. Execute the following command to log: `aws-sso-magic login`
+4. Select the profile to use.
 
 ## How to use with pyp installer
 
@@ -29,62 +42,19 @@ This Docker solution mixed the following repositories:
 
     NOTE: You will need the aws cli v2 installed previously.
 
-## How to use with Docker
 
-1. Once you built the docker image locally, you are able to run the following command to the aws sso configuration. 
+## Prerequisites
+1. [Python 3.9](https://www.python.org/downloads/) installed.
+2. [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) installed, please click on the link depending of your OS.
 
-    NOTE: On this step execution, you will need to have the sso url.
+## Installation Steps
+1. `pip install aws-sso-magic`
 
-    - Linux/MacOS
-        ```bash
-        docker run --rm -it -v ~/.aws:/root/.aws aws_sso_magic aws-sso-magic configure
-        ```
-    - Windows CMD
-        ```bash
-        docker run --rm -it -v %userprofile%\.aws:/root/.aws aws_sso_magic configure
-        ```
-    - Windows PowerShell
-        ```bash
-        docker run --rm -it -v $env:userprofile\.aws:/root/.aws aws_sso_magic configure
-        ```         
+#
+# How to use with Docker
 
-2. To do the login/logout, please execute the following command.
-    - Linux/MacOS
-        ```bash
-        docker run --rm -it -v ~/.aws:/root/.aws aws_sso_magic aws-sso-magic login
-        ```
-    - Windows CMD
-        ```bash
-        docker run --rm -it -v %userprofile%\.aws:/root/.aws aws_sso_magic login
-        ```
-    - Windows PowerShell
-        ```bash
-        docker run --rm -it -v $env:userprofile\.aws:/root/.aws aws_sso_magic login
-        ```  
+1. Please follow the instructions from the docker hub repository of [aws_sso_magic](https://hub.docker.com/r/javiortizmol/aws_sso_magic)
 
-## Shorten the Docker command
-
-To shorten the Docker aws-sso-magic command, on your operating system's create an alias in Linux and macOS, or doskey in Windows. To set the aws-sso-magic alias, you can run one of the following commands.
-
-- Linux/MacOS
-    ```bash
-    alias aws-sso-magic='docker run --rm -it -v ~/.aws:/root/.aws aws_sso_magic aws-sso-magic'    
-    ```
-- Windows CMD
-    ```bash
-    doskey aws-sso-magic=docker run --rm -it -v %userprofile%\.aws:/root/.aws aws_sso_magic aws-sso-magic
-    ```    
-- Windows PowerShell
-    ```bash
-    Set-Alias -Name aws-sso-magic -Value 'docker run --rm -it -v $env:userprofile\.aws:/root/.aws aws_sso_magic aws-sso-magic'
-    ```  
-
-You will be able to execute the --help or --version to test the alias:
-
-```bash
-aws-sso-magic --help
-``` 
-
-# Docker Hub
+## Docker Hub
 - [All Repositories](https://hub.docker.com/u/javiortizmol)
 - [aws_sso_magic](https://hub.docker.com/r/javiortizmol/aws_sso_magic)
