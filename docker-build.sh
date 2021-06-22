@@ -14,20 +14,20 @@ VERSION=$(echo "$VERSION")
 
 echo "INFO: Docker build $VERSION"
 
-docker build -t $DOCKER_IMAGE_NAME .
+# docker build -t $DOCKER_IMAGE_NAME .
 
-docker tag $DOCKER_IMAGE_NAME $DOCKER_IMAGE_NAME:$VERSION >/dev/null
-docker tag $DOCKER_IMAGE_NAME $DOCKER_IMAGE_NAME:latest >/dev/null
+# docker tag $DOCKER_IMAGE_NAME $DOCKER_IMAGE_NAME:$VERSION >/dev/null
+# docker tag $DOCKER_IMAGE_NAME $DOCKER_IMAGE_NAME:latest >/dev/null
 
-if [ "$DOCKER_SLUG_REPO" != "" ]; then
-    docker tag $DOCKER_IMAGE_NAME $DOCKER_REPO_REMOTE:$VERSION >/dev/null
-    docker tag $DOCKER_IMAGE_NAME $DOCKER_REPO_REMOTE:latest >/dev/null
+# if [ "$DOCKER_SLUG_REPO" != "" ]; then
+#     docker tag $DOCKER_IMAGE_NAME $DOCKER_REPO_REMOTE:$VERSION >/dev/null
+#     docker tag $DOCKER_IMAGE_NAME $DOCKER_REPO_REMOTE:latest >/dev/null
 
-    docker push $DOCKER_REPO_REMOTE:latest
-    docker push $DOCKER_REPO_REMOTE:$VERSION
-fi
+#     docker push $DOCKER_REPO_REMOTE:latest
+#     docker push $DOCKER_REPO_REMOTE:$VERSION
+# fi
 
-if [ "$1" == "run" ]; then
-    echo "INFO: Running the docker container from the docker-build tool.."
-    docker run --rm -it -v ~/.aws:/root/.aws -v $(pwd):/aws $DOCKER_IMAGE_NAME aws-sso-magic login
-fi
+# if [ "$1" == "run" ]; then
+#     echo "INFO: Running the docker container from the docker-build tool.."
+#     docker run --rm -it -v ~/.aws:/root/.aws -v $(pwd):/aws $DOCKER_IMAGE_NAME aws-sso-magic login
+# fi
