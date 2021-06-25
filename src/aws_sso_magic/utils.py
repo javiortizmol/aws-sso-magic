@@ -312,8 +312,10 @@ def get_config_profile_list(configs):
     result = PrettyTable()
     result.field_names = ["Option", "Role"]
     for c in configs:
+        profile = c.profile_name
+        profile = profile.replace("DevelopmentNew", "Develop")
         conf_number = configs.index(c) + 1
-        result.add_row([conf_number, c.profile_name])
+        result.add_row([conf_number, profile])
     print (result)
     try:
         config_option = int(input('Enter the role option: '))
