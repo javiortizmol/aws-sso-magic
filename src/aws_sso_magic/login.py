@@ -22,15 +22,18 @@ from dateutil.parser import parse
 from dateutil.parser import parse
 from dateutil.tz import tzlocal
 from aws_sso_lib.sso import get_token_fetcher
-from aws_sso_lib.config_file_writer import ConfigFileWriter, write_values, get_config_filename, process_profile_name
+from aws_sso_lib.config_file_writer import ConfigFileWriter, write_values, get_config_filename
 from botocore.session import Session
 from botocore.exceptions import ProfileNotFound
+from .utils import _read_aws_sso_config, process_profile_name_formatter 
 from .utils import _check_aws_v2
 from .utils import configure_logging, get_instance, GetInstanceError
 from .utils import generate_profile_name_format, get_formatter, get_process_formatter
 from .utils import get_trim_formatter, get_safe_account_name, get_config_profile_list
 from .utils import _set_profile_credentials, _add_prefix
 from .utils import (
+    AWS_SSO_CONFIG_ALIAS,
+    AWS_SSO_CONFIG_PATH,
     AWS_DEFAULT_REGION,
     VERBOSE
 )
@@ -161,6 +164,14 @@ def login(
     client = session.create_client("sso", config=config)
 
     LOGGER.info("Gathering accounts and roles")
+
+    aws_sso_magic_conf = _read_aws_sso_config(AWS_SSO_CONFIG_PATH)
+    res = bool(aws_sso_magic_conf)
+    if res:
+        LOGGER.info(f"Section: {AWS_SSO_CONFIG_ALIAS} found on the file {AWS_SSO_CONFIG_PATH}")
+    else:
+        LOGGER.info(f"No section: {AWS_SSO_CONFIG_ALIAS} found on the file {AWS_SSO_CONFIG_PATH}")        
+
     accounts = []
     list_accounts_args = {
         "accessToken": token["accessToken"]
@@ -206,6 +217,7 @@ def login(
                         role_name=role["roleName"],
                         region=region,
                     )
+                    profile_name = process_profile_name_formatter(profile_name)
                     if profile_name == "SKIP":
                         continue
                     configs.append(ConfigParams(profile_name, account["accountName"], account["accountId"], role["roleName"], region))
@@ -232,7 +244,7 @@ def login(
         LOGGER.info("Dry run for {} profiles".format(len(configs)))
         def write_config(profile_name, config_values):
             lines = [
-                "[profile {}]".format(process_profile_name(profile_name))
+                "[profile {}]".format(process_profile_name_formatter(profile_name))
             ]
             for key, value in config_values.items():
                 lines.append("{} = {}".format(key, value))

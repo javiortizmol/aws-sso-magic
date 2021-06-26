@@ -30,10 +30,13 @@ from dateutil.parser import parse
 from aws_sso_lib.compat import shell_join
 from aws_sso_lib.config import find_instances, SSOInstance
 from botocore.compat import compat_shell_split as shell_split
+from aws_sso_lib.config_file_writer import process_profile_name
 
 AWS_CONFIG_PATH = f'{Path.home()}/.aws/config'
 AWS_CREDENTIAL_PATH = f'{Path.home()}/.aws/credentials'
 AWS_SSO_CACHE_PATH = f'{Path.home()}/.aws/sso/cache'
+AWS_SSO_CONFIG_PATH = f'{Path.home()}/.aws-sso-magic/config'
+AWS_SSO_CONFIG_ALIAS = "AliasAccounts"
 AWS_DEFAULT_REGION = 'us-east-1'
 VERBOSE = True
 
@@ -116,7 +119,7 @@ def get_instance(sso_start_url, sso_region, sso_start_url_vars=None, sso_region_
                 f"No AWS SSO instance matched {specifier.to_str(region=True)} " +
                 f"from {SSOInstance.to_strs(all_instances)}")
         else:
-            raise GetInstanceError("No AWS SSO instance found")
+            raise GetInstanceError("No AWS SSO instance found, run aws-sso-magic configure")
 
     if len(instances) > 1:
         raise GetInstanceError(f"Found {len(instances)} SSO instance, please specify one: {SSOInstance.to_strs(instances)}")
@@ -313,7 +316,6 @@ def get_config_profile_list(configs):
     result.field_names = ["Option", "Role"]
     for c in configs:
         profile = c.profile_name
-        profile = profile.replace("DevelopmentNew", "Develop")
         conf_number = configs.index(c) + 1
         result.add_row([conf_number, profile])
     print (result)
@@ -468,6 +470,44 @@ def _print_warn(message):
 def _print_error(message):
     _print_colour(Colour.FAIL, message, always=True)
     sys.exit(1)
+  
+def _read_aws_sso_config(path):
+    config = ConfigParser()
+    par    = {}
+    try:
+        config.read(path)
+        par=dict(config.items(AWS_SSO_CONFIG_ALIAS))
+        for p in par:
+            par[p]=par[p].split("#",1)[0].strip()
+        return par        
+    except Exception as e :
+        return par    
 
-def _print_success(message):
-    _print_colour(Colour.OKGREEN, message)    
+def _role_shortening(profile_name):
+    profile_name = profile_name.replace("administratoraccess", "admin")
+    profile_name = profile_name.replace("readonlyaccess", "readonly")
+    profile_name = profile_name.replace("viewonlyaccess", "viewonly")
+    return profile_name
+
+def _replace_alias(profile_name):
+    partitioned_string = profile_name.partition('-')
+    account_name = partitioned_string[0]
+    config = _read_aws_sso_config(AWS_SSO_CONFIG_PATH)
+    res = bool(config)
+    if res:
+        key_list = list(config.keys())
+        val_list = list(config.values())
+        if not account_name in key_list :
+            pass
+        else:
+            position = key_list.index(account_name)
+            alias_name = val_list[position]
+            profile_name = profile_name.replace(account_name, alias_name)
+    profile_name = _role_shortening(profile_name)
+    return profile_name
+
+def process_profile_name_formatter(profile_name):
+    profile_name = process_profile_name(profile_name)
+    profile_name = profile_name.replace(".", "-").lower() 
+    profile = _replace_alias (profile_name)
+    return profile
