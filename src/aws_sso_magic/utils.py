@@ -20,8 +20,8 @@ import os
 import re
 import subprocess
 import sys
+import inquirer
 
-from prettytable import PrettyTable
 from datetime import datetime, timedelta
 from pathlib import Path
 from configparser import ConfigParser
@@ -310,29 +310,29 @@ def get_trim_formatter(account_name_patterns, role_name_patterns, formatter):
 def get_safe_account_name(name):
     return re.sub(r"[\s\[\]]+", "-", name).strip("-")
 
+def _select_profile():
+    config = _read_config(AWS_CONFIG_PATH)
+
+    profiles = []
+    for section in config.sections():
+        x = str(section).replace('profile ','')
+        profiles.append(x)
+    profiles.sort()
+
+    questions = [
+        inquirer.List(
+            'name',
+            message='Please select an AWS config profile',
+            choices=profiles
+        ),
+    ]
+    answer = inquirer.prompt(questions)
+    return answer['name'] if answer else sys.exit(1)
+
 def get_config_profile_list(configs):
     configure_logging(LOGGER, False)
-    result = PrettyTable()
-    result.field_names = ["Option", "Role"]
-    for c in configs:
-        profile = c.profile_name
-        conf_number = configs.index(c) + 1
-        result.add_row([conf_number, profile])
-    print (result)
-    try:
-        config_option = int(input('Enter the role option: '))
-        config_option = config_option - 1
-    except ValueError:
-        _print_error('Please enter a number')
-        sys.exit(1)        
-    try:
-        config_profile = configs[config_option].profile_name
-        print(f"\nAWS config profile option selected: {config_profile}")
-    except IndexError as e:
-        _print_error('Option selected not valid')
-        sys.exit(1) 
-    return config_profile
-
+    answer = _select_profile()
+    return answer
 
 # Credentials Utils
 def _read_config(path):
