@@ -19,13 +19,13 @@ import click
 
 from collections import namedtuple
 from dateutil.parser import parse
-from dateutil.parser import parse
 from dateutil.tz import tzlocal
 from aws_sso_lib.sso import get_token_fetcher
 from aws_sso_lib.config_file_writer import ConfigFileWriter, write_values, get_config_filename
 from botocore.session import Session
 from botocore.exceptions import ProfileNotFound
-from .utils import _read_aws_sso_config, process_profile_name_formatter 
+from .eks   import _eks
+from .utils import _read_aws_sso_config_file, process_profile_name_formatter 
 from .utils import _check_aws_v2
 from .utils import configure_logging, get_instance, GetInstanceError
 from .utils import generate_profile_name_format, get_formatter, get_process_formatter
@@ -53,7 +53,8 @@ LOGIN_ALL_VAR = "AWS_SSO_LOGIN_ALL"
 
 ConfigParams = namedtuple("ConfigParams", ["profile_name", "account_name", "account_id", "role_name", "region"])
 
-@click.command("login")
+@click.command()
+@click.option("--eks",is_flag=True)
 @click.option("--sso-start-url", "-u", metavar="URL", help="Your AWS SSO start URL")
 @click.option("--sso-region", help="The AWS region your AWS SSO instance is deployed in")
 @click.option("--region", "-r", "regions", multiple=True, metavar="REGION", help="AWS region for the profiles, can provide multiple times")
@@ -72,6 +73,7 @@ ConfigParams = namedtuple("ConfigParams", ["profile_name", "account_name", "acco
 @click.option("--verbose", "-v", count=True)
 
 def login(
+        eks,
         sso_start_url,
         sso_region,    
         regions,
@@ -165,7 +167,7 @@ def login(
 
     LOGGER.info("Gathering accounts and roles")
 
-    aws_sso_magic_conf = _read_aws_sso_config(AWS_SSO_CONFIG_PATH)
+    aws_sso_magic_conf = _read_aws_sso_config_file(AWS_SSO_CONFIG_PATH, AWS_SSO_CONFIG_ALIAS)
     res = bool(aws_sso_magic_conf)
     if res:
         LOGGER.info(f"Section: {AWS_SSO_CONFIG_ALIAS} found on the file {AWS_SSO_CONFIG_PATH}")
@@ -289,8 +291,10 @@ def login(
 
     global VERBOSE
 
-    _set_profile_credentials(profile, True)
+    _set_profile_credentials(profile, 'default')
 
+    if eks:
+        _eks(profile, 'default')
 
 if __name__ == "__main__":
     login(prog_name="python -m aws_sso_magic.login")  #pylint: disable=unexpected-keyword-arg,no-value-for-parameter

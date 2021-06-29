@@ -36,6 +36,7 @@ AWS_CONFIG_PATH = f'{Path.home()}/.aws/config'
 AWS_CREDENTIAL_PATH = f'{Path.home()}/.aws/credentials'
 AWS_SSO_CACHE_PATH = f'{Path.home()}/.aws/sso/cache'
 AWS_SSO_CONFIG_PATH = f'{Path.home()}/.aws-sso-magic/config'
+AWS_SSO_EKS_CONFIG_PATH = f'{Path.home()}/.aws-sso-magic/eks'
 AWS_SSO_CONFIG_ALIAS = "AliasAccounts"
 AWS_DEFAULT_REGION = 'us-east-1'
 VERBOSE = True
@@ -310,12 +311,16 @@ def get_trim_formatter(account_name_patterns, role_name_patterns, formatter):
 def get_safe_account_name(name):
     return re.sub(r"[\s\[\]]+", "-", name).strip("-")
 
+def _get_profile_name(profile):
+    profile = str(profile).replace('profile ','')
+    return profile 
+
 def _select_profile():
     config = _read_config(AWS_CONFIG_PATH)
 
     profiles = []
     for section in config.sections():
-        x = str(section).replace('profile ','')
+        x = _get_profile_name(section)
         profiles.append(x)
     profiles.sort()
 
@@ -333,6 +338,15 @@ def get_config_profile_list(configs):
     configure_logging(LOGGER, False)
     answer = _select_profile()
     return answer
+
+def _get_account_id_profile(path, profile_name):
+    profile_name = f"profile {profile_name}"
+    config = _read_section_configuration(path, profile_name)
+    key_list = list(config.keys())
+    val_list = list(config.values())
+    account_id_position = key_list.index('sso_account_id')
+    account_id = val_list[account_id_position]
+    return account_id
 
 # Credentials Utils
 def _read_config(path):
@@ -362,16 +376,34 @@ class Colour:
     UNDERLINE = '\033[4m'
 
 
-def _set_profile_credentials(profile_name, use_default=False):
+def _set_profile_credentials(profile_name, parent_profile):
     profile_opts = _get_aws_profile(profile_name)
     cache_login = _get_sso_cached_login(profile_opts)
     credentials = _get_sso_role_credentials(profile_opts, cache_login)
-
-    if not use_default:
-        _store_aws_credentials(profile_name, profile_opts, credentials)
-    else:
-        _store_aws_credentials('default', profile_opts, credentials)
+    if parent_profile == 'default':
+        _store_aws_credentials(parent_profile, profile_opts, credentials)
         _copy_to_default_profile(profile_name)
+    else:
+        _store_aws_credentials(profile_name, profile_opts, credentials)
+
+def _get_role_arn(profile_name, role_name):
+    account_id = _get_account_id_profile(AWS_CONFIG_PATH, profile_name)
+    role_arn = f"arn:aws:iam::{account_id}:role/{role_name}"
+    return role_arn
+
+def _create_profilename_child_credentials(parent_profile, profile_name, role_name):
+    profile_name = _get_profile_name(profile_name)
+    role_arn = _get_role_arn(profile_name,role_name)
+    print(f'\nAdding the profile child [{profile_name}] to the credentials file')
+    config = _read_config(AWS_CREDENTIAL_PATH)
+    if config.has_section(profile_name):
+        config.remove_section(profile_name)
+
+    config.add_section(profile_name)
+    
+    config.set(profile_name , "source_profile", parent_profile)
+    config.set(profile_name , "role_arn", role_arn)
+    _write_config(AWS_CREDENTIAL_PATH, config)
 
 def _copy_to_default_profile(profile_name):
     print(f'Copying profile [{profile_name}] to [default]')
@@ -470,13 +502,25 @@ def _print_warn(message):
 def _print_error(message):
     _print_colour(Colour.FAIL, message, always=True)
     sys.exit(1)
-  
-def _read_aws_sso_config(path):
+
+def _read_section_configuration(path, section):
     config = ConfigParser()
     par    = {}
     try:
         config.read(path)
-        par=dict(config.items(AWS_SSO_CONFIG_ALIAS))
+        par=dict(config.items(section))
+        for p in par:
+            par[p]=par[p].split("#",1)[0].strip()
+        return par        
+    except Exception as e :
+        return par  
+
+def _read_aws_sso_config_file(path, section):
+    config = ConfigParser()
+    par    = {}
+    try:
+        config.read(path)
+        par=dict(config.items(section))
         for p in par:
             par[p]=par[p].split("#",1)[0].strip()
         return par        
@@ -492,7 +536,7 @@ def _role_shortening(profile_name):
 def _replace_alias(profile_name):
     partitioned_string = profile_name.partition('-')
     account_name = partitioned_string[0]
-    config = _read_aws_sso_config(AWS_SSO_CONFIG_PATH)
+    config = _read_aws_sso_config_file(AWS_SSO_CONFIG_PATH, AWS_SSO_CONFIG_ALIAS)
     res = bool(config)
     if res:
         key_list = list(config.keys())

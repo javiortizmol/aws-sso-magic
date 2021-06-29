@@ -16,6 +16,8 @@ import logging
 import click
 import sys
 
+#from .eks import 
+
 from .utils import _check_aws_v2, configure_logging
 from .utils import (
     AWS_CONFIG_PATH
@@ -23,14 +25,14 @@ from .utils import (
 
 LOGGER = logging.getLogger(__name__)
 
-@click.command("configure")
+@click.command()
 
 def configure():
     """Configure the AWS SSO instance.
 
     Note this only needs to be done once for a given SSO instance (i.e., start URL),
     as all profiles sharing the same start URL will share the same login.
-    """    
+    """
     configure_logging(LOGGER, False)
     _check_aws_v2()
     
