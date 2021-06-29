@@ -35,6 +35,7 @@ from .utils import (
     AWS_SSO_CONFIG_ALIAS,
     AWS_SSO_CONFIG_PATH,
     AWS_DEFAULT_REGION,
+    AWS_SSO_PROFILE,
     VERBOSE
 )
 
@@ -291,10 +292,12 @@ def login(
 
     global VERBOSE
 
-    _set_profile_credentials(profile, 'default')
+    default_profile = 'default'
+
+    _set_profile_credentials(profile, default_profile)
 
     if eks:
-        _eks(profile, 'default')
+        _eks(profile, AWS_SSO_PROFILE)
 
 if __name__ == "__main__":
     login(prog_name="python -m aws_sso_magic.login")  #pylint: disable=unexpected-keyword-arg,no-value-for-parameter

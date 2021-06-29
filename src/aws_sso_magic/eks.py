@@ -8,7 +8,7 @@ import logging.handlers
 
 from .utils import configure_logging, _get_profile_name, _create_profilename_child_credentials, _read_aws_sso_config_file, _print_error
 from .utils import (
-    AWS_CREDENTIAL_PATH,
+    AWS_SSO_PROFILE,
     AWS_SSO_EKS_CONFIG_PATH,
     VERBOSE
 )

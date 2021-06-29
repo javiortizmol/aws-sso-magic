@@ -37,6 +37,7 @@ AWS_CREDENTIAL_PATH = f'{Path.home()}/.aws/credentials'
 AWS_SSO_CACHE_PATH = f'{Path.home()}/.aws/sso/cache'
 AWS_SSO_CONFIG_PATH = f'{Path.home()}/.aws-sso-magic/config'
 AWS_SSO_EKS_CONFIG_PATH = f'{Path.home()}/.aws-sso-magic/eks'
+AWS_SSO_PROFILE = "aws-sso"
 AWS_SSO_CONFIG_ALIAS = "AliasAccounts"
 AWS_DEFAULT_REGION = 'us-east-1'
 VERBOSE = True
@@ -376,13 +377,15 @@ class Colour:
     UNDERLINE = '\033[4m'
 
 
-def _set_profile_credentials(profile_name, parent_profile):
+def _set_profile_credentials(profile_name, default_profile):
     profile_opts = _get_aws_profile(profile_name)
     cache_login = _get_sso_cached_login(profile_opts)
     credentials = _get_sso_role_credentials(profile_opts, cache_login)
-    if parent_profile == 'default':
-        _store_aws_credentials(parent_profile, profile_opts, credentials)
+    if default_profile == 'default':
+        _store_aws_credentials(default_profile, profile_opts, credentials)
+        _store_aws_credentials(AWS_SSO_PROFILE, profile_opts, credentials)
         _copy_to_default_profile(profile_name)
+        _copy_to_aws_sso_profile(profile_name)
     else:
         _store_aws_credentials(profile_name, profile_opts, credentials)
 
@@ -405,8 +408,24 @@ def _create_profilename_child_credentials(parent_profile, profile_name, role_nam
     config.set(profile_name , "role_arn", role_arn)
     _write_config(AWS_CREDENTIAL_PATH, config)
 
+def _copy_to_aws_sso_profile(profile_name):
+    print(f"\nCopying profile [{profile_name}] to [{AWS_SSO_PROFILE}]")
+
+    config = _read_config(AWS_CONFIG_PATH)
+
+    if config.has_section(AWS_SSO_PROFILE):
+        config.remove_section(AWS_SSO_PROFILE)
+
+    config.add_section(AWS_SSO_PROFILE)
+
+    for key, value in config.items(profile_name):
+        config.set(AWS_SSO_PROFILE, key, value)
+
+    _write_config(AWS_CONFIG_PATH, config)
+    print("\nCredentials copied successfully") 
+
 def _copy_to_default_profile(profile_name):
-    print(f'Copying profile [{profile_name}] to [default]')
+    print(f"\nCopying profile [{profile_name}] to [default]")
 
     config = _read_config(AWS_CONFIG_PATH)
 
