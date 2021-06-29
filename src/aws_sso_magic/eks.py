@@ -19,28 +19,27 @@ LOGGER = logging.getLogger(__name__)
 def _get_role_name(profile_name):
     configure_logging(LOGGER, False)
     role_name = ""
-    flag_proxy_role_default = False
-    section_default = "default-proxy-role-name"
+    section = "default-proxy-role-name"
     role_name_key="proxy_role_name"
     config_profile = _read_aws_sso_config_file(AWS_SSO_EKS_CONFIG_PATH, profile_name)
-    config_proxy_role_default = _read_aws_sso_config_file(AWS_SSO_EKS_CONFIG_PATH, section_default)
+    config_proxy_role_default = _read_aws_sso_config_file(AWS_SSO_EKS_CONFIG_PATH, section)
     res = bool(config_profile)
     result = bool(config_proxy_role_default)
     
     if res:
         config = config_profile
-        section_default = profile_name
+        section = profile_name
     else:
         if result:
             config = config_proxy_role_default
         else:
-            _print_error(f"\nERROR: EKS login error! please in the [{section_default}] section, configure the {role_name_key} key on the file {AWS_SSO_EKS_CONFIG_PATH}")
+            _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_EKS_CONFIG_PATH}")
 
     key_list = list(config.keys())
     val_list = list(config.values())
 
     if not role_name_key in key_list :
-       _print_error(f"\nERROR: EKS login error! please in the [{section_default}] section, configure the {role_name_key} key on the file {AWS_SSO_EKS_CONFIG_PATH}")
+       _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_EKS_CONFIG_PATH}")
     else:
         role_position = key_list.index(role_name_key)
         role_name = val_list[role_position]            
