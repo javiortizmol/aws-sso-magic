@@ -38,6 +38,7 @@ AWS_SSO_CACHE_PATH = f'{Path.home()}/.aws/sso/cache'
 AWS_SSO_CONFIG_PATH = f'{Path.home()}/.aws-sso-magic/config'
 AWS_SSO_EKS_CONFIG_PATH = f'{Path.home()}/.aws-sso-magic/eks'
 AWS_SSO_PROFILE = "aws-sso"
+AWS_SSO_PROFILE_IN_USE = "ProfileInUse"
 AWS_SSO_CONFIG_ALIAS = "AliasAccounts"
 AWS_DEFAULT_REGION = 'us-east-1'
 VERBOSE = True
@@ -560,6 +561,33 @@ def _read_aws_sso_config_file(path, section):
         return par        
     except Exception as e :
         return par    
+
+def _set_profile_in_use(profile_name):
+    profile_name = _get_profile_name(profile_name)
+    config = _read_config(AWS_SSO_CONFIG_PATH)
+
+    if config.has_section(AWS_SSO_PROFILE_IN_USE):
+        config.remove_section(AWS_SSO_PROFILE_IN_USE)
+
+    config.add_section(AWS_SSO_PROFILE_IN_USE)
+    
+    config.set(AWS_SSO_PROFILE_IN_USE , "profile", profile_name)
+
+    _write_config(AWS_SSO_CONFIG_PATH, config)
+
+
+def _get_profile_in_use():
+    config = _read_aws_sso_config_file(AWS_SSO_CONFIG_PATH, AWS_SSO_PROFILE_IN_USE)
+    res = bool(config)
+    if res:
+        key_list = list(config.keys())
+        val_list = list(config.values())
+        if not 'profile' in key_list :
+            _print_error(f"Please add the [{AWS_SSO_PROFILE_IN_USE}] section with the key profile to the file {AWS_SSO_CONFIG_PATH}")
+        else:
+            position = key_list.index('profile')
+            profile_selected = val_list[position]
+    return profile_selected
 
 def _role_shortening(profile_name):
     profile_name = profile_name.replace("administratoraccess", "admin")

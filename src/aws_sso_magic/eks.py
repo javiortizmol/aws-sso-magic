@@ -7,7 +7,7 @@ import logging
 import logging.handlers
 
 from .utils import _check_kubectl, configure_logging, _get_profile_name, _create_profilename_child_credentials
-from .utils import _read_aws_sso_config_file, _print_error
+from .utils import _read_aws_sso_config_file, _print_error, _get_profile_in_use
 from .utils import (
     AWS_SSO_EKS_CONFIG_PATH,
     VERBOSE
@@ -97,10 +97,12 @@ def _eks_print_instructions(profile_name):
     print("\nPowerShell:")
     print(f"$Env:AWS_PROFILE={profile_name}")
     print("aws sts get-caller-identity\n")
+    print("\nNOTE: If you selected another profile, please unset the AWS_PROFILE environment variable and run again aws-sso-login command")
 
 def _eks_cluster_configuration():
     _check_kubectl()
     cluster_name = _eks_list_clusters()
     _eks_update_kubeconfig(cluster_name)
-    _eks_print_instructions("develop-admin")
+    profile_in_use = _get_profile_in_use()    
+    _eks_print_instructions(profile_in_use)
 

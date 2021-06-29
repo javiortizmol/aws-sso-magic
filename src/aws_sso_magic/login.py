@@ -30,7 +30,7 @@ from .utils import _check_aws_v2
 from .utils import configure_logging, get_instance, GetInstanceError
 from .utils import generate_profile_name_format, get_formatter, get_process_formatter
 from .utils import get_trim_formatter, get_safe_account_name, get_config_profile_list
-from .utils import _set_profile_credentials, _add_prefix
+from .utils import _set_profile_credentials, _add_prefix, _set_profile_in_use
 from .utils import (
     AWS_SSO_CONFIG_ALIAS,
     AWS_SSO_CONFIG_PATH,
@@ -293,6 +293,7 @@ def login(
         profile = _add_prefix(get_config_profile_list(configs))
         _set_profile_credentials(profile, default_profile)
         _eks_profile_credentials(profile, AWS_SSO_PROFILE)
+        _set_profile_in_use(profile)
     else:
         _eks_cluster_configuration()
 
