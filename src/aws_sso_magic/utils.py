@@ -210,10 +210,25 @@ class Printer:
             first_loop = False
 
 # Check Utils
+
+def _check_kubectl():
+    try:
+        kubectl_version = subprocess.run(['kubectl'] + ['version'], capture_output=True).stdout.decode('utf-8')
+        if 'GitVersion:' not in kubectl_version:
+            _print_error('\nkubectl not found. Please install. Exiting.')
+            exit(1)
+        else:
+            print('kubectl found. ')
+    except Exception as e:
+        _print_error(
+            f'\nAn error occured trying to find the kubectl version. Do you have kubectl installed?\n{e}')
+        exit(1)            
+
+
 def _check_aws_v2():
     # validate aws v2
     try:
-        aws_version = subprocess.run(['aws']+ ['--version'], capture_output=True).stdout.decode('utf-8')
+        aws_version = subprocess.run(['aws'] + ['--version'], capture_output=True).stdout.decode('utf-8')
         if 'aws-cli/2' not in aws_version:
             _print_error('\nAWS CLI Version 2 not found. Please install. Exiting.')
             exit(1)

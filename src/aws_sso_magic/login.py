@@ -24,7 +24,7 @@ from aws_sso_lib.sso import get_token_fetcher
 from aws_sso_lib.config_file_writer import ConfigFileWriter, write_values, get_config_filename
 from botocore.session import Session
 from botocore.exceptions import ProfileNotFound
-from .eks   import _eks
+from .eks   import _eks_profile_credentials, _eks_cluster_configuration
 from .utils import _read_aws_sso_config_file, process_profile_name_formatter 
 from .utils import _check_aws_v2
 from .utils import configure_logging, get_instance, GetInstanceError
@@ -278,26 +278,23 @@ def login(
             "sso_role_name": config.role_name,
             "region": config.region,
         })
-
         for k, v in config_default.items():
             if k in existing_config and existing_config_action in ["keep"]:
                 continue
             config_values[k] = v
-
         LOGGER.debug("Config values for profile {}: {}".format(config.profile_name, config_values))
-
         write_config(config.profile_name, config_values)
-
-    profile = _add_prefix(get_config_profile_list(configs))
 
     global VERBOSE
 
     default_profile = 'default'
 
-    _set_profile_credentials(profile, default_profile)
-
-    if eks:
-        _eks(profile, AWS_SSO_PROFILE)
+    if not eks:
+        profile = _add_prefix(get_config_profile_list(configs))
+        _set_profile_credentials(profile, default_profile)
+        _eks_profile_credentials(profile, AWS_SSO_PROFILE)
+    else:
+        _eks_cluster_configuration()
 
 if __name__ == "__main__":
     login(prog_name="python -m aws_sso_magic.login")  #pylint: disable=unexpected-keyword-arg,no-value-for-parameter
