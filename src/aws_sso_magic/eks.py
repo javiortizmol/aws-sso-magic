@@ -97,7 +97,7 @@ def _eks_print_instructions(profile_name):
     print("\nPowerShell:")
     print(f"$Env:AWS_PROFILE={profile_name}")
     print("aws sts get-caller-identity\n")
-    print("\nNOTE: If you selected another profile, please unset the AWS_PROFILE environment variable and run again aws-sso-login command")
+    print("\nNOTE: If you will select another profile, please first unset the AWS_PROFILE environment variable")
 
 def _eks_cluster_configuration():
     _check_kubectl()
