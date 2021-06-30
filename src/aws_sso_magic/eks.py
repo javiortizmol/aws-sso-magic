@@ -87,16 +87,16 @@ def _eks_update_kubeconfig(cluster_name):
         exit(1)    
 
 def _eks_print_instructions(profile_name):
-    print("\nUse any of the following options to access eks resources programmatically or from kubectl. ")
-    print("\nLinux/macOS:")
-    print(f"export AWS_PROFILE={profile_name}")
-    print("aws sts get-caller-identity\n")    
-    print("\nWindows:")
-    print(f"SET AWS_PROFILE={profile_name}")
-    print("aws sts get-caller-identity\n")    
-    print("\nPowerShell:")
-    print(f"$Env:AWS_PROFILE={profile_name}")
-    print("aws sts get-caller-identity\n")
+    _print_warn("\nUse any of the following options to access eks resources programmatically or from kubectl. ")
+    _print_warn("\nLinux/macOS:")
+    _print_warn(f"export AWS_PROFILE={profile_name}")
+    _print_warn("aws sts get-caller-identity\n")    
+    _print_warn("\nWindows:")
+    _print_warn(f"SET AWS_PROFILE={profile_name}")
+    _print_warn("aws sts get-caller-identity\n")    
+    _print_warn("\nPowerShell:")
+    _print_warn(f"$Env:AWS_PROFILE={profile_name}")
+    _print_warn("aws sts get-caller-identity\n")
     _print_warn("\nNOTE: If you will select another profile, please first unset the AWS_PROFILE environment variable or close this terminal and open a new one")
 
 def _eks_cluster_configuration():
