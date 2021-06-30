@@ -1,0 +1,14 @@
+profile="$1"
+
+if [ "$profile" == "" ]; then
+        echo "ERROR: Please send the profile to use"
+        exit 1
+fi
+
+unset AWS_PROFILE
+aws-sso-magic login --profile $profile
+aws-sso-magic login --eks
+export AWS_PROFILE="$profile"
+aws sts get-caller-identity
+echo "INFO: Testing the eks cluster connection"
+kubectl get nodes

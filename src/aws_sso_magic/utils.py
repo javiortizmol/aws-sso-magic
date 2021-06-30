@@ -213,6 +213,10 @@ class Printer:
 
 # Check Utils
 
+def _check_flag_combinations(eks, profile_arg):
+    if eks and profile_arg != None:
+        _print_error(f"\nERROR: Not use the flag combination --eks --profile")    
+
 def _check_kubectl():
     try:
         kubectl_version = subprocess.run(['kubectl'] + ['version'], capture_output=True).stdout.decode('utf-8')

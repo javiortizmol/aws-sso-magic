@@ -26,7 +26,7 @@ from botocore.session import Session
 from botocore.exceptions import ProfileNotFound
 from .eks   import _eks_profile_credentials, _eks_cluster_configuration
 from .utils import _read_aws_sso_config_file, process_profile_name_formatter 
-from .utils import _check_aws_v2
+from .utils import _check_aws_v2, _print_error, _check_flag_combinations
 from .utils import configure_logging, get_instance, GetInstanceError
 from .utils import generate_profile_name_format, get_formatter, get_process_formatter
 from .utils import get_trim_formatter, get_safe_account_name, get_config_profile_list
@@ -55,7 +55,8 @@ LOGIN_ALL_VAR = "AWS_SSO_LOGIN_ALL"
 ConfigParams = namedtuple("ConfigParams", ["profile_name", "account_name", "account_id", "role_name", "region"])
 
 @click.command()
-@click.option("--eks",is_flag=True)
+@click.option("--eks", is_flag=True)
+@click.option("--profile", "profile_arg", help="The profile to use")
 @click.option("--sso-start-url", "-u", metavar="URL", help="Your AWS SSO start URL")
 @click.option("--sso-region", help="The AWS region your AWS SSO instance is deployed in")
 @click.option("--region", "-r", "regions", multiple=True, metavar="REGION", help="AWS region for the profiles, can provide multiple times")
@@ -75,6 +76,7 @@ ConfigParams = namedtuple("ConfigParams", ["profile_name", "account_name", "acco
 
 def login(
         eks,
+        profile_arg,
         sso_start_url,
         sso_region,    
         regions,
@@ -97,6 +99,7 @@ def login(
     as all profiles sharing the same start URL will share the same login.
     """
     configure_logging(LOGGER, verbose)
+    _check_flag_combinations(eks, profile_arg)
     _check_aws_v2()
 
     missing = []
@@ -290,7 +293,10 @@ def login(
     default_profile = 'default'
 
     if not eks:
-        profile = _add_prefix(get_config_profile_list(configs))
+        if profile_arg == None:
+            profile = _add_prefix(get_config_profile_list(configs))
+        else:
+            profile = _add_prefix(profile_arg)
         _set_profile_credentials(profile, default_profile)
         _eks_profile_credentials(profile, AWS_SSO_PROFILE)
         _set_profile_in_use(profile)
