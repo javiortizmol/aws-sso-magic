@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aws-sso-magic"
-version = "1.0.15" # change in aws_sso_magic/__init__.py too
+version = "1.0.16" # change in aws_sso_magic/__init__.py too
 description = "Magic credentials on the AWS CLI home using AWS SSO login"
 authors = ["Javier Ortiz <jahor2@gmail.com>"]
 license = "Apache-2.0"

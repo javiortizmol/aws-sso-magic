@@ -35,9 +35,10 @@ from aws_sso_lib.config_file_writer import process_profile_name
 AWS_CONFIG_PATH = f'{Path.home()}/.aws/config'
 AWS_CREDENTIAL_PATH = f'{Path.home()}/.aws/credentials'
 AWS_SSO_CACHE_PATH = f'{Path.home()}/.aws/sso/cache'
-AWS_SSO_CONFIG_PATH = f'{Path.home()}/.aws-sso-magic/config'
-AWS_SSO_EKS_CONFIG_PATH = f'{Path.home()}/.aws-sso-magic/eks'
 AWS_SSO_PROFILE = "aws-sso"
+AWS_SSO_DIR = f".{AWS_SSO_PROFILE}-magic"
+AWS_SSO_CONFIG_PATH = f'{Path.home()}/{AWS_SSO_DIR}/config'
+AWS_SSO_EKS_CONFIG_PATH = f'{Path.home()}/{AWS_SSO_DIR}/eks'
 AWS_SSO_PROFILE_IN_USE = "ProfileInUse"
 AWS_SSO_CONFIG_ALIAS = "AliasAccounts"
 AWS_DEFAULT_REGION = 'us-east-1'
@@ -547,7 +548,7 @@ def _read_section_configuration(path, section):
         for p in par:
             par[p]=par[p].split("#",1)[0].strip()
         return par        
-    except Exception as e :
+    except Exception as e:
         return par  
 
 def _read_aws_sso_config_file(path, section):
@@ -577,6 +578,7 @@ def _set_profile_in_use(profile_name):
 
 
 def _get_profile_in_use():
+    profile_selected = ""
     config = _read_aws_sso_config_file(AWS_SSO_CONFIG_PATH, AWS_SSO_PROFILE_IN_USE)
     res = bool(config)
     if res:
@@ -587,6 +589,8 @@ def _get_profile_in_use():
         else:
             position = key_list.index('profile')
             profile_selected = val_list[position]
+    if profile_selected == "":
+        _print_error(f"\nERROR: Create the file {AWS_SSO_CONFIG_PATH} and run the command aws-sso-magic login")
     return profile_selected
 
 def _role_shortening(profile_name):
@@ -617,3 +621,55 @@ def process_profile_name_formatter(profile_name):
     profile_name = profile_name.replace(".", "-").lower() 
     profile = _replace_alias (profile_name)
     return profile
+
+def _create_tool_directory(parent_dir, directory):
+    path = os.path.join(parent_dir, directory)
+    dir_exists = os.path.isdir(path)
+    if not dir_exists:
+        try:
+            os.makedirs(path, exist_ok = True)
+            print(f"{path} directory created")
+        except OSError as error:
+            _print_error(f"{path} can not be created")
+    else:
+        print(f"{path} directory already exists")
+
+def _create_aws_sso_conf_file(configfile_name):
+    # Check if there is already a configurtion file
+    if not os.path.isfile(configfile_name):
+        # Create the configuration file as it doesn't exist yet
+        cfgfile = open(configfile_name, "w")
+
+        # Add content to the file
+        Config = ConfigParser()
+        Config.write(cfgfile)
+        cfgfile.close()
+        print(f"{configfile_name} file created")
+    else:
+        print(f"{configfile_name} file already exists")
+
+def _create_aws_sso_eks_file(configfile_name):
+    # Check if there is already a configurtion file
+    if not os.path.isfile(configfile_name):
+        # Create the configuration file as it doesn't exist yet
+        while True:        
+            try:
+                proxy_role_name = input('Enter only the eks role name proxy to use by default: ')        
+                if not proxy_role_name:
+                    _print_warn("The eks role name proxy not be empty")
+                else:
+                    break                    
+            except ValueError:
+                _print_warn("The eks role name proxy not be empty")
+
+        cfgfile = open(configfile_name, "w")
+
+        # Add content to the file
+        Config = ConfigParser()
+        Config.add_section("default-proxy-role-name")
+        Config.set("default-proxy-role-name", "proxy_role_name", proxy_role_name)
+        Config.write(cfgfile)
+        cfgfile.close()
+        print(f"{configfile_name} file created")
+    else:
+        print(f"{configfile_name} file already exists")
