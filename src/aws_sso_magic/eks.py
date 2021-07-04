@@ -11,6 +11,7 @@ from .utils import _check_kubectl, _print_warn, configure_logging, _get_profile_
 from .utils import _read_aws_sso_config_file, _print_error, _get_profile_in_use
 from .utils import (
     AWS_SSO_EKS_CONFIG_PATH,
+    AWS_SSO_EKS_ROLE_NAME_DEFAULT,
     VERBOSE
 )
 
@@ -72,12 +73,15 @@ def _get_role_name(profile_name):
        _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_EKS_CONFIG_PATH}")
     else:
         role_position = key_list.index(role_name_key)
-        role_name = val_list[role_position]            
-
+        role_name = val_list[role_position]
+        if role_name == AWS_SSO_EKS_ROLE_NAME_DEFAULT :
+            _print_error(f"\nERROR: Please replace the string {AWS_SSO_EKS_ROLE_NAME_DEFAULT} on the section {section} file {AWS_SSO_EKS_CONFIG_PATH}")
+        if role_name == "":            
+            _print_error(f"\nERROR: Please add a valid value on the section {section} for the key {role_name_key} file {AWS_SSO_EKS_CONFIG_PATH}")
     return role_name
 
-def _eks_profile_credentials(profile_name, parent_profile):
-    profile_name = _get_profile_name(profile_name)
+def _eks_profile_credentials(parent_profile):
+    profile_name = _get_profile_in_use()
     role_name = _get_role_name(profile_name)
     _create_profilename_child_credentials(parent_profile, profile_name, role_name)
 
@@ -105,8 +109,8 @@ def _eks_print_instructions(profile_name):
 
 def _eks_cluster_configuration():
     _check_kubectl()
+    profile_in_use = _get_profile_in_use()
     cluster_name = _eks_list_clusters()
-    profile_in_use = _get_profile_in_use()    
     _eks_update_kubeconfig(cluster_name)
     _eks_print_instructions(profile_in_use)    
 

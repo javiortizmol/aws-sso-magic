@@ -298,9 +298,9 @@ def login(
         else:
             profile = _add_prefix(profile_arg)
         _set_profile_credentials(profile, default_profile)
-        _eks_profile_credentials(profile, AWS_SSO_PROFILE)
         _set_profile_in_use(profile)
     else:
+        _eks_profile_credentials(AWS_SSO_PROFILE)
         _eks_cluster_configuration()
 
 if __name__ == "__main__":

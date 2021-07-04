@@ -45,8 +45,8 @@ def configure():
         exit(1)
     
     _create_tool_directory(Path.home(), AWS_SSO_DIR)
-    _create_aws_sso_conf_file(AWS_SSO_CONFIG_PATH)
     _create_aws_sso_eks_file(AWS_SSO_EKS_CONFIG_PATH)
+    _create_aws_sso_conf_file(AWS_SSO_CONFIG_PATH)
 
 if __name__ == "__main__":
     configure(prog_name="python -m aws_sso_magic.configure") 
