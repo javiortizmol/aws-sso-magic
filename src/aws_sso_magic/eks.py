@@ -107,10 +107,12 @@ def _eks_print_instructions(profile_name):
     _print_warn("aws sts get-caller-identity\n")
     _print_warn("\nNOTE: If you will select another profile, please first unset the AWS_PROFILE environment variable or close this terminal and open a new one\n")
 
-def _eks_cluster_configuration():
+def _eks_cluster_configuration(cluster_arg):
     _check_kubectl()
+    cluster_name = cluster_arg
     profile_in_use = _get_profile_in_use()
-    cluster_name = _eks_list_clusters()
+    if cluster_arg == None:
+        cluster_name = _eks_list_clusters()
     _eks_update_kubeconfig(cluster_name)
     _eks_print_instructions(profile_in_use)    
 

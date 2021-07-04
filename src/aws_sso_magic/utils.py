@@ -214,9 +214,11 @@ class Printer:
 
 # Check Utils
 
-def _check_flag_combinations(eks, profile_arg):
+def _check_flag_combinations(eks, profile_arg, cluster_arg):
     if eks and profile_arg != None:
         _print_error(f"\nERROR: Not use the flag combination --eks --profile")    
+    if not eks and cluster_arg != None:
+        _print_error(f"\nERROR: Not use the flag combination login --cluster")            
 
 def _check_kubectl():
     try:
