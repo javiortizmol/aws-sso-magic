@@ -17,7 +17,7 @@ This solution mixed the following repositories:
     ```     
 - [pyproject.toml](pyproject.toml) - The metadata file with the dependencies and application information.    
 - [Dockerfile](Dockerfile) - The docker file with the instructions to build the aws-sso-magic cli.
-- [eks-login](utils/eks-login) - A script tool to add on the /usr/local/bin (Only for linux/macOS).
+- [eks-login](utils/eks-login) - A script tool to add on the /usr/local/bin (Only for linux/macOS or Windows WSL).
     ```bash
     eks-login develop-readonly
     ```     
@@ -57,10 +57,17 @@ This solution mixed the following repositories:
 
 ## How to use it for eks support
 ### - Prerequisites
-1. [kubectl](https://www.python.org/downloads/) installed.
+1. [kubectl](https://kubernetes.io/docs/tasks/tools/) installed.
 
 ### - Instructions
-1. Go to the file $HOME/.aws-sso-magic/eks and replace the string "replacethis" on the section default-proxy-role-name if you want to use that role name for all profiles, or just add the profile section in the file. Eg:
+1. Go to the file $HOME/.aws-sso-magic/eks and replace the string "replacethis" on the section default-proxy-role-name if you want to use that role name for all profiles.
+    ```
+    [default-proxy-role-name]
+    proxy_role_name = replacethis    
+    ```
+
+    or just add the profile section in the file. Eg:
+
     ```
     [myprofile]
     proxy_role_name = myrolename
