@@ -376,12 +376,18 @@ def _get_account_id_profile(path, profile_name):
 # Credentials Utils
 def _read_config(path):
     config = ConfigParser()
-    config.read(path)
+    try:
+        config.read(path)
+    except FileNotFoundError as e:
+        _print_error(e)
     return config
 
 def _write_config(path, config):
-    with open(path, "w") as destination:
-        config.write(destination)
+    try:
+        with open(path, "w") as destination:
+            config.write(destination)
+    except FileNotFoundError as e:
+        _print_error(e)
 
 def _load_json(path):
     try:
