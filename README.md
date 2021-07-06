@@ -51,7 +51,26 @@ These steps will create the config files on the paths $HOME/.aws and $HOME/.aws-
     - CLI default output format
     - CLI profile name. Eg: default
     - Enter only the name of the proxy role to use by default. Eg: MyAdminRole or just press Enter
+3. Optional: In case that you want to set an account alias, you can modify the file on $HOME/.aws-sso-magic/config adding the [AliasAccounts] section with key (account name) and value (alias account) Eg:
+    ```
+    [AliasAccounts]
+    test1 = dev
+    test2 = qa
+    test3 = staging
+    test4 = prod
+    ```
+    making the above configuration, it will now show the aliases in the profile selection menu when aws-sso-magic login command is executed.
+    ```
+    [?] Please select an AWS config profile:    
+      aws-sso
+      default
+      dev-admin
+    > qa-admin 
+      staging-admin   
+      prod-admin
+    ```
 
+#
 ## How to use it
 
 1. Execute the following command to select and log into the aws accounts: `aws-sso-magic login`

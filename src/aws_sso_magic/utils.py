@@ -626,7 +626,7 @@ def _replace_alias(profile_name):
 def process_profile_name_formatter(profile_name):
     profile_name = process_profile_name(profile_name)
     profile_name = profile_name.replace(".", "-").lower() 
-    profile = _replace_alias (profile_name)
+    profile = _replace_alias(profile_name)
     return profile
 
 def _create_tool_directory(parent_dir, directory):
