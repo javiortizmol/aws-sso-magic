@@ -3,10 +3,10 @@ import sys
 import boto3
 import botocore
 import subprocess
-import inquirer
 import logging
 import logging.handlers
 
+from PyInquirer import prompt, Separator
 from .utils import _check_kubectl, _print_warn, configure_logging, _get_profile_name, _create_profilename_child_credentials
 from .utils import _read_aws_sso_config_file, _print_error, _get_profile_in_use
 from .utils import (
@@ -36,15 +36,14 @@ def _eks_list_clusters():
             # If no more clusters exist, exit loop, otherwise retrieve the next batch
             if marker is None:
                 break
-            clusters, marker = list_clusters(iter_marker=marker)    
-    questions = [
-        inquirer.List(
-            'name',
-            message='Please select the EKS cluster',
-            choices=clusters
-        ),
-    ]
-    answer = inquirer.prompt(questions)
+            clusters, marker = list_clusters(iter_marker=marker)
+    questions = [{
+        'type': 'list',
+        'name': 'name',
+        'message': 'Please select the EKS cluster',
+        'choices': clusters
+    }]            
+    answer = prompt(questions)
     return answer['name'] if answer else sys.exit(1)
 
 def _get_role_name(profile_name):

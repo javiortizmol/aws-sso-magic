@@ -20,8 +20,8 @@ import os
 import re
 import subprocess
 import sys
-import inquirer
 
+from PyInquirer import prompt, Separator
 from datetime import datetime, timedelta
 from pathlib import Path
 from configparser import ConfigParser
@@ -349,14 +349,14 @@ def _select_profile():
         profiles.append(x)
     profiles.sort()
 
-    questions = [
-        inquirer.List(
-            'name',
-            message='Please select an AWS config profile',
-            choices=profiles
-        ),
-    ]
-    answer = inquirer.prompt(questions)
+    questions = [{
+        'type': 'list',
+        'name': 'name',
+        'message': 'Please select an AWS config profile',
+        'choices': profiles
+    }]
+
+    answer = prompt(questions)
     return answer['name'] if answer else sys.exit(1)
 
 def get_config_profile_list(configs):
@@ -399,7 +399,6 @@ class Colour:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
-
 
 def _set_profile_credentials(profile_name, default_profile):
     profile_opts = _get_aws_profile(profile_name)
