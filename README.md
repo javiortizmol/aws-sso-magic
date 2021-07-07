@@ -95,7 +95,7 @@ These steps will create the config files on the paths $HOME/.aws and $HOME/.aws-
     proxy_role_name = myrolename
     ```
 2. Execute the following command to select and log the eks cluster: `aws-sso-magic login --eks`
-3. Please select the EKS cluster
+3. Please select the EKS cluster or send the cluster name using the flag --cluster. Eg: `aws-sso-magic login --eks --cluster myekscluster`
 4. Copy and paste the commands according to your OS.
     
     NOTE: If you will select another profile, please first unset the AWS_PROFILE environment variable or close this terminal and open a new one
