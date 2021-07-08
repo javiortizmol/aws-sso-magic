@@ -82,7 +82,7 @@ These steps will create the config files on the paths $HOME/.aws and $HOME/.aws-
 2. `aws-sso-magic login` or `aws-sso-login login --profile myprofile` executed previouly.
 
 ### - Instructions
-1. Go to the file $HOME/.aws-sso-magic/eks and replace the string "replacethis" on the section default-proxy-role-name if you want to use that role name for all profiles.
+1. Go to the file $HOME/.aws-sso-magic/config and replace the string "replacethis" on the section default-proxy-role-name if you want to use that role name for all profiles.
     ```
     [default-proxy-role-name]
     proxy_role_name = replacethis    
@@ -94,7 +94,11 @@ These steps will create the config files on the paths $HOME/.aws and $HOME/.aws-
     [myprofile]
     proxy_role_name = myrolename
     ```
-2. Execute the following command to select and log the eks cluster: `aws-sso-magic login --eks`
+2. Execute the following command to select and log the eks cluster: `aws-sso-magic login --eks` or if you have configured an aws account as trusted entity having granted to assume roles on the rest of the accounts from there, please execute `aws-sso-magic login` selecting profile (account and role configured as trusted identity) and then execute `aws-sso-magic login --eks --eks-profile env-eks-profile`. Eg:
+    ```
+    aws-sso-magic login --profile main-admin
+    aws-sso-magic login --eks --eks-profile qa-admin
+    ```
 3. Please select the EKS cluster or send the cluster name using the flag --cluster. Eg: `aws-sso-magic login --eks --cluster myekscluster`
 4. Copy and paste the commands according to your OS.
     

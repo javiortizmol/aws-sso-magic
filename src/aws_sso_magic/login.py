@@ -22,8 +22,8 @@ from aws_sso_lib.sso import get_token_fetcher
 from aws_sso_lib.config_file_writer import ConfigFileWriter, write_values, get_config_filename
 from botocore.session import Session
 from botocore.exceptions import ProfileNotFound
-from .eks   import _eks_profile_credentials, _eks_cluster_configuration
-from .utils import _read_aws_sso_config_file, process_profile_name_formatter 
+from .eks   import _eks_cluster_configuration
+from .utils import _create_credentials_profile, _read_aws_sso_config_file, process_profile_name_formatter 
 from .utils import _check_aws_v2, _check_flag_combinations
 from .utils import configure_logging, get_instance, GetInstanceError
 from .utils import generate_profile_name_format, get_formatter, get_process_formatter
@@ -54,7 +54,8 @@ ConfigParams = namedtuple("ConfigParams", ["profile_name", "account_name", "acco
 
 @click.command()
 @click.option("--eks", is_flag=True, help="The flag to use for the update-kubeconfig")
-@click.option("--profile", "profile_arg", help="The profile to use")
+@click.option("--profile", "profile_arg", help="The main profile name to use")
+@click.option("--eks-profile", "eks_profile_arg", help="The eks profile name to use")
 @click.option("--cluster", "cluster_arg", help="The eks cluster name to use, this argument is only allowed using the --eks flag")
 @click.option("--sso-start-url", "-u", metavar="URL", help="Your AWS SSO start URL")
 @click.option("--sso-region", help="The AWS region your AWS SSO instance is deployed in")
@@ -76,6 +77,7 @@ ConfigParams = namedtuple("ConfigParams", ["profile_name", "account_name", "acco
 def login(
         eks,
         profile_arg,
+        eks_profile_arg,
         cluster_arg,
         sso_start_url,
         sso_region,    
@@ -99,7 +101,7 @@ def login(
     as all profiles sharing the same start URL will share the same login.
     """
     configure_logging(LOGGER, verbose)
-    _check_flag_combinations(eks, profile_arg, cluster_arg)
+    _check_flag_combinations(eks, profile_arg, cluster_arg, eks_profile_arg)
     _check_aws_v2()
 
     missing = []
@@ -292,16 +294,17 @@ def login(
 
     default_profile = 'default'
 
+    _create_credentials_profile(configs)
+
     if not eks:
         if profile_arg == None:
-            profile = _add_prefix(get_config_profile_list(configs))
+            profile = _add_prefix(get_config_profile_list())
         else:
             profile = _add_prefix(profile_arg)
         _set_profile_credentials(profile, default_profile)
         _set_profile_in_use(profile)
     else:
-        _eks_profile_credentials(AWS_SSO_PROFILE)
-        _eks_cluster_configuration(cluster_arg)
+        _eks_cluster_configuration(cluster_arg, eks_profile_arg)
 
 if __name__ == "__main__":
     login(prog_name="python -m aws_sso_magic.login")  #pylint: disable=unexpected-keyword-arg,no-value-for-parameter

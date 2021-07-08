@@ -5,6 +5,7 @@ import botocore
 import subprocess
 import logging
 import logging.handlers
+import os
 
 from PyInquirer import prompt, Separator
 from .utils import _check_kubectl, _print_warn, configure_logging, _get_profile_name, _create_profilename_child_credentials
@@ -17,7 +18,8 @@ from .utils import (
 
 LOGGER = logging.getLogger(__name__)
 
-def list_clusters(max_clusters=10, iter_marker=''):
+def list_clusters(profile_in_use, max_clusters=10, iter_marker=''):
+    os.environ["AWS_PROFILE"] = profile_in_use
     eks = boto3.client('eks')
     try:
         clusters = eks.list_clusters(maxResults=max_clusters, nextToken=iter_marker)
@@ -26,8 +28,8 @@ def list_clusters(max_clusters=10, iter_marker=''):
     except botocore.exceptions.ClientError as e:
         _print_error("Unset the AWS_PROFILE environment variable or close this terminal and open a new one\n")
 
-def _eks_list_clusters():
-    clusters, marker = list_clusters()
+def _eks_list_clusters(profile_in_use):
+    clusters, marker = list_clusters(profile_in_use)
     if not clusters:
         _print_error(f"\nNo clusters exist. Run the aws-sso-magic login and select a valid profile")
     else:
@@ -36,7 +38,7 @@ def _eks_list_clusters():
             # If no more clusters exist, exit loop, otherwise retrieve the next batch
             if marker is None:
                 break
-            clusters, marker = list_clusters(iter_marker=marker)
+            clusters, marker = list_clusters(profile_in_use, iter_marker=marker)
     questions = [{
         'type': 'list',
         'name': 'name',
@@ -46,45 +48,8 @@ def _eks_list_clusters():
     answer = prompt(questions)
     return answer['name'] if answer else sys.exit(1)
 
-def _get_role_name(profile_name):
-    configure_logging(LOGGER, False)
-    role_name = ""
-    section = "default-proxy-role-name"
-    role_name_key="proxy_role_name"
-    config_profile = _read_aws_sso_config_file(AWS_SSO_EKS_CONFIG_PATH, profile_name)
-    config_proxy_role_default = _read_aws_sso_config_file(AWS_SSO_EKS_CONFIG_PATH, section)
-    res = bool(config_profile)
-    result = bool(config_proxy_role_default)
-    
-    if res:
-        config = config_profile
-        section = profile_name
-    else:
-        if result:
-            config = config_proxy_role_default
-        else:
-            _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_EKS_CONFIG_PATH}")
-
-    key_list = list(config.keys())
-    val_list = list(config.values())
-
-    if not role_name_key in key_list :
-       _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_EKS_CONFIG_PATH}")
-    else:
-        role_position = key_list.index(role_name_key)
-        role_name = val_list[role_position]
-        if role_name == AWS_SSO_EKS_ROLE_NAME_DEFAULT :
-            _print_error(f"\nERROR: Please replace the string {AWS_SSO_EKS_ROLE_NAME_DEFAULT} on the section {section} file {AWS_SSO_EKS_CONFIG_PATH}")
-        if role_name == "":            
-            _print_error(f"\nERROR: Please add a valid value on the section {section} for the key {role_name_key} file {AWS_SSO_EKS_CONFIG_PATH}")
-    return role_name
-
-def _eks_profile_credentials(parent_profile):
-    profile_name = _get_profile_in_use()
-    role_name = _get_role_name(profile_name)
-    _create_profilename_child_credentials(parent_profile, profile_name, role_name)
-
-def _eks_update_kubeconfig(cluster_name):
+def _eks_update_kubeconfig(cluster_name, profile_in_use):
+    os.environ["AWS_PROFILE"] = profile_in_use
     try:
         subprocess.run(['aws'] + ['eks'] + ['update-kubeconfig'] + ['--name'] + [cluster_name], stderr=sys.stderr, stdout=sys.stdout, check=True)
         LOGGER.info("kubeconfig updated successfully")
@@ -106,13 +71,15 @@ def _eks_print_instructions(profile_name):
     _print_warn("aws sts get-caller-identity\n")
     _print_warn("\nNOTE: If you will select another profile, please first unset the AWS_PROFILE environment variable or close this terminal and open a new one\n")
 
-def _eks_cluster_configuration(cluster_arg):
+def _eks_cluster_configuration(cluster_arg, eks_profile_arg):
     _check_kubectl()
+    profile_in_use = eks_profile_arg
     cluster_name = cluster_arg
-    profile_in_use = _get_profile_in_use()
+    if eks_profile_arg == None:
+        profile_in_use = _get_profile_in_use()
     if cluster_arg == None:
-        cluster_name = _eks_list_clusters()
-    _eks_update_kubeconfig(cluster_name)
+        cluster_name = _eks_list_clusters(profile_in_use)
+    _eks_update_kubeconfig(cluster_name, profile_in_use)
     _eks_print_instructions(profile_in_use)    
 
 

@@ -214,11 +214,13 @@ class Printer:
 
 # Check Utils
 
-def _check_flag_combinations(eks, profile_arg, cluster_arg):
+def _check_flag_combinations(eks, profile_arg, cluster_arg, eks_profile_arg):
     if eks and profile_arg != None:
         _print_error(f"\nERROR: Not use the flag combination --eks --profile")    
     if not eks and cluster_arg != None:
-        _print_error(f"\nERROR: Not use the flag combination login --cluster")            
+        _print_error(f"\nERROR: Not use the flag combination login --cluster")
+    if not eks and eks_profile_arg != None:
+        _print_error(f"\nERROR: Not use the flag combination login --eks-profile")                      
 
 def _check_kubectl():
     try:
@@ -359,7 +361,7 @@ def _select_profile():
     answer = prompt(questions)
     return answer['name'] if answer else sys.exit(1)
 
-def get_config_profile_list(configs):
+def get_config_profile_list():
     configure_logging(LOGGER, False)
     answer = _select_profile()
     return answer
@@ -423,10 +425,49 @@ def _get_role_arn(profile_name, role_name):
     role_arn = f"arn:aws:iam::{account_id}:role/{role_name}"
     return role_arn
 
+def _get_role_name(profile_name):
+    configure_logging(LOGGER, False)
+    role_name = ""
+    section = "default-proxy-role-name"
+    role_name_key="proxy_role_name"
+    config_profile = _read_aws_sso_config_file(AWS_SSO_CONFIG_PATH, profile_name)
+    config_proxy_role_default = _read_aws_sso_config_file(AWS_SSO_CONFIG_PATH, section)
+    res = bool(config_profile)
+    result = bool(config_proxy_role_default)
+    
+    if res:
+        config = config_profile
+        section = profile_name
+    else:
+        if result:
+            config = config_proxy_role_default
+        else:
+            _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_EKS_CONFIG_PATH}")
+
+    key_list = list(config.keys())
+    val_list = list(config.values())
+
+    if not role_name_key in key_list :
+       _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_EKS_CONFIG_PATH}")
+    else:
+        role_position = key_list.index(role_name_key)
+        role_name = val_list[role_position]
+        if role_name == AWS_SSO_EKS_ROLE_NAME_DEFAULT :
+            _print_error(f"\nERROR: Please replace the string {AWS_SSO_EKS_ROLE_NAME_DEFAULT} on the section {section} file {AWS_SSO_EKS_CONFIG_PATH}")
+        if role_name == "":            
+            _print_error(f"\nERROR: Please add a valid value on the section {section} for the key {role_name_key} file {AWS_SSO_EKS_CONFIG_PATH}")
+    return role_name
+
+def _create_credentials_profile(configs):
+    configure_logging(LOGGER, False)
+    LOGGER.info("Writing {} profiles to {}".format(len(configs), AWS_CREDENTIAL_PATH))
+    for config in configs:
+        role_name = _get_role_name(config.profile_name)
+        _create_profilename_child_credentials(AWS_SSO_PROFILE, config.profile_name, role_name)
+
 def _create_profilename_child_credentials(parent_profile, profile_name, role_name):
     profile_name = _get_profile_name(profile_name)
     role_arn = _get_role_arn(profile_name,role_name)
-    print(f'Adding the profile child [{profile_name}] to the credentials file')
     config = _read_config(AWS_CREDENTIAL_PATH)
     if config.has_section(profile_name):
         config.remove_section(profile_name)
@@ -644,18 +685,6 @@ def _create_tool_directory(parent_dir, directory):
             _print_error(f"{path} can not be created")
 
 def _create_aws_sso_conf_file(configfile_name):
-    # Check if there is already a configurtion file
-    if not os.path.isfile(configfile_name):
-        # Create the configuration file as it doesn't exist yet
-        cfgfile = open(configfile_name, "w")
-
-        # Add content to the file
-        Config = ConfigParser()
-        Config.write(cfgfile)
-        cfgfile.close()
-        print(f"{configfile_name} file created")
-
-def _create_aws_sso_eks_file(configfile_name):
     # Check if there is already a configurtion file
     if not os.path.isfile(configfile_name):
         # Create the configuration file as it doesn't exist yet

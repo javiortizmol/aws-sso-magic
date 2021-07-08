@@ -15,13 +15,11 @@ import subprocess
 import logging
 import click
 import sys
-import os
 
 from pathlib import Path
-from .utils import _check_aws_v2, configure_logging, _create_tool_directory, _create_aws_sso_conf_file ,_create_aws_sso_eks_file
+from .utils import _check_aws_v2, configure_logging, _create_tool_directory, _create_aws_sso_conf_file
 from .utils import (
     AWS_SSO_CONFIG_PATH,
-    AWS_SSO_EKS_CONFIG_PATH,
     AWS_SSO_DIR
 )
 
@@ -45,7 +43,6 @@ def configure():
         exit(1)
     
     _create_tool_directory(Path.home(), AWS_SSO_DIR)
-    _create_aws_sso_eks_file(AWS_SSO_EKS_CONFIG_PATH)
     _create_aws_sso_conf_file(AWS_SSO_CONFIG_PATH)
 
 if __name__ == "__main__":
