@@ -38,7 +38,6 @@ AWS_SSO_CACHE_PATH = f'{Path.home()}/.aws/sso/cache'
 AWS_SSO_PROFILE = "aws-sso"
 AWS_SSO_DIR = f".{AWS_SSO_PROFILE}-magic"
 AWS_SSO_CONFIG_PATH = f'{Path.home()}/{AWS_SSO_DIR}/config'
-AWS_SSO_EKS_CONFIG_PATH = f'{Path.home()}/{AWS_SSO_DIR}/eks'
 AWS_SSO_PROFILE_IN_USE = "ProfileInUse"
 AWS_SSO_CONFIG_ALIAS = "AliasAccounts"
 AWS_SSO_EKS_ROLE_NAME_DEFAULT = "replacethis"
@@ -442,20 +441,20 @@ def _get_role_name(profile_name):
         if result:
             config = config_proxy_role_default
         else:
-            _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_EKS_CONFIG_PATH}")
+            _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_CONFIG_PATH}")
 
     key_list = list(config.keys())
     val_list = list(config.values())
 
     if not role_name_key in key_list :
-       _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_EKS_CONFIG_PATH}")
+       _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_CONFIG_PATH}")
     else:
         role_position = key_list.index(role_name_key)
         role_name = val_list[role_position]
         if role_name == AWS_SSO_EKS_ROLE_NAME_DEFAULT :
-            _print_error(f"\nERROR: Please replace the string {AWS_SSO_EKS_ROLE_NAME_DEFAULT} on the section {section} file {AWS_SSO_EKS_CONFIG_PATH}")
+            _print_error(f"\nERROR: Please replace the string {AWS_SSO_EKS_ROLE_NAME_DEFAULT} on the section {section} file {AWS_SSO_CONFIG_PATH}")
         if role_name == "":            
-            _print_error(f"\nERROR: Please add a valid value on the section {section} for the key {role_name_key} file {AWS_SSO_EKS_CONFIG_PATH}")
+            _print_error(f"\nERROR: Please add a valid value on the section {section} for the key {role_name_key} file {AWS_SSO_CONFIG_PATH}")
     return role_name
 
 def _create_credentials_profile(configs):

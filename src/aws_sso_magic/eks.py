@@ -10,11 +10,6 @@ import os
 from PyInquirer import prompt, Separator
 from .utils import _check_kubectl, _print_warn, configure_logging, _get_profile_name, _create_profilename_child_credentials
 from .utils import _read_aws_sso_config_file, _print_error, _get_profile_in_use
-from .utils import (
-    AWS_SSO_EKS_CONFIG_PATH,
-    AWS_SSO_EKS_ROLE_NAME_DEFAULT,
-    VERBOSE
-)
 
 LOGGER = logging.getLogger(__name__)
 
