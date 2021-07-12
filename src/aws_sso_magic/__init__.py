@@ -1,1 +1,1 @@
-__version__ = '1.0.26' # change in pyproject.toml too
+__version__ = '1.0.27' # change in pyproject.toml too

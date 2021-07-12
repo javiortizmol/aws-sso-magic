@@ -50,7 +50,7 @@ These steps will create the config files on the paths $HOME/.aws and $HOME/.aws-
     - CLI default client Region
     - CLI default output format
     - CLI profile name. Eg: default
-    - Enter only the name of the proxy role to use by default. Eg: MyAdminRole or just press Enter
+    - Enter only the name of the proxy role to use by default. Eg: MyAdminRole or just press Enter (This option will mandatory for the --eks flag)
 3. Optional: In case that you want to set an account alias, you can modify the file on $HOME/.aws-sso-magic/config adding the [AliasAccounts] section with key (account name) and value (alias account) Eg:
     ```
     [AliasAccounts]
