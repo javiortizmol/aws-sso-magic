@@ -38,6 +38,8 @@ AWS_SSO_CACHE_PATH = f'{Path.home()}/.aws/sso/cache'
 AWS_SSO_PROFILE = "aws-sso"
 AWS_SSO_DIR = f".{AWS_SSO_PROFILE}-magic"
 AWS_SSO_CONFIG_PATH = f'{Path.home()}/{AWS_SSO_DIR}/config'
+AWS_SSO_DEFAULT_PROXY_ROLE_SECTION="default-proxy-role-name"
+AWS_SSO_DEFAULT_PROXY_ROLE_KEY="proxy_role_name"
 AWS_SSO_PROFILE_IN_USE = "ProfileInUse"
 AWS_SSO_CONFIG_ALIAS = "AliasAccounts"
 AWS_SSO_EKS_ROLE_NAME_DEFAULT = "replacethis"
@@ -424,11 +426,12 @@ def _get_role_arn(profile_name, role_name):
     role_arn = f"arn:aws:iam::{account_id}:role/{role_name}"
     return role_arn
 
-def _get_role_name(profile_name):
+def _get_role_name(profile_name, origin_request = "main"):
+    #origin_request variable to know the origin of the call of this function and apply the validations on the role_arn to assume
     configure_logging(LOGGER, False)
     role_name = ""
-    section = "default-proxy-role-name"
-    role_name_key="proxy_role_name"
+    section = AWS_SSO_DEFAULT_PROXY_ROLE_SECTION
+    role_name_key= AWS_SSO_DEFAULT_PROXY_ROLE_KEY
     config_profile = _read_aws_sso_config_file(AWS_SSO_CONFIG_PATH, profile_name)
     config_proxy_role_default = _read_aws_sso_config_file(AWS_SSO_CONFIG_PATH, section)
     res = bool(config_profile)
@@ -441,20 +444,25 @@ def _get_role_name(profile_name):
         if result:
             config = config_proxy_role_default
         else:
-            _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_CONFIG_PATH}")
+            if origin_request == "eks":
+                _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_CONFIG_PATH}")
 
     key_list = list(config.keys())
     val_list = list(config.values())
 
     if not role_name_key in key_list :
-       _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_CONFIG_PATH}")
+        if origin_request == "eks":
+            _print_error(f"\nERROR: EKS login error! please in the [{section}] section, configure the {role_name_key} key on the file {AWS_SSO_CONFIG_PATH}")
     else:
         role_position = key_list.index(role_name_key)
         role_name = val_list[role_position]
-        if role_name == AWS_SSO_EKS_ROLE_NAME_DEFAULT :
-            _print_error(f"\nERROR: Please replace the string {AWS_SSO_EKS_ROLE_NAME_DEFAULT} on the section {section} file {AWS_SSO_CONFIG_PATH}")
-        if role_name == "":            
-            _print_error(f"\nERROR: Please add a valid value on the section {section} for the key {role_name_key} file {AWS_SSO_CONFIG_PATH}")
+        if origin_request == "eks":
+            if role_name == AWS_SSO_EKS_ROLE_NAME_DEFAULT :
+                _print_error(f"\nERROR: To use the --eks flag feature, please replace the string {AWS_SSO_EKS_ROLE_NAME_DEFAULT} or just add the profile [{profile_name}] section directly with the key {AWS_SSO_DEFAULT_PROXY_ROLE_KEY} and the role name to use like proxy on the file {AWS_SSO_CONFIG_PATH}")
+            if role_name == "":            
+                _print_error(f"\nERROR: To use the --eks flag feature, please add a valid value on the section [{section}] for the key {role_name_key} on the file {AWS_SSO_CONFIG_PATH}", False)
+                _print_error(f"Or if you want apply the same role name proxy for all profiles, please add the section [{AWS_SSO_DEFAULT_PROXY_ROLE_SECTION}] and the key {AWS_SSO_DEFAULT_PROXY_ROLE_KEY} with the role name to use")
+
     return role_name
 
 def _create_credentials_profile(configs):
@@ -504,7 +512,8 @@ def _copy_to_default_profile(profile_name):
     config.add_section('default')
 
     for key, value in config.items(profile_name):
-        config.set('default', key, value)
+        if key != "role_arn" and key != "source_profile" :
+            config.set('default', key, value)
 
     _write_config(AWS_CONFIG_PATH, config)
     print("\nCredentials copied successfully") 
@@ -587,9 +596,9 @@ def _print_msg(message):
 def _print_warn(message):
     _print_colour(Colour.WARNING, message, always=True) 
 
-def _print_error(message):
+def _print_error(message, kill_exec = True):
     _print_colour(Colour.FAIL, message, always=True)
-    sys.exit(1)
+    if kill_exec: sys.exit(1)
 
 def _read_section_configuration(path, section):
     config = ConfigParser()
@@ -695,8 +704,8 @@ def _create_aws_sso_conf_file(configfile_name):
 
         # Add content to the file
         Config = ConfigParser()
-        Config.add_section("default-proxy-role-name")
-        Config.set("default-proxy-role-name", "proxy_role_name", proxy_role_name)
+        Config.add_section(AWS_SSO_DEFAULT_PROXY_ROLE_SECTION)
+        Config.set(AWS_SSO_DEFAULT_PROXY_ROLE_SECTION, AWS_SSO_DEFAULT_PROXY_ROLE_KEY, proxy_role_name)
         Config.write(cfgfile)
         cfgfile.close()
         print(f"{configfile_name} file created")

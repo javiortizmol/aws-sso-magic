@@ -8,8 +8,8 @@ import logging.handlers
 import os
 
 from PyInquirer import prompt, Separator
-from .utils import _check_kubectl, _print_warn, configure_logging, _get_profile_name, _create_profilename_child_credentials
-from .utils import _read_aws_sso_config_file, _print_error, _get_profile_in_use
+from .utils import _check_kubectl, _print_warn
+from .utils import _get_role_name, _print_error, _get_profile_in_use
 
 LOGGER = logging.getLogger(__name__)
 
@@ -72,6 +72,7 @@ def _eks_cluster_configuration(cluster_arg, eks_profile_arg):
     cluster_name = cluster_arg
     if eks_profile_arg == None:
         profile_in_use = _get_profile_in_use()
+    _get_role_name(profile_in_use, "eks")
     if cluster_arg == None:
         cluster_name = _eks_list_clusters(profile_in_use)
     _eks_update_kubeconfig(cluster_name, profile_in_use)
