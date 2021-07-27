@@ -496,7 +496,8 @@ def _copy_to_aws_sso_profile(profile_name):
     config.add_section(AWS_SSO_PROFILE)
 
     for key, value in config.items(profile_name):
-        config.set(AWS_SSO_PROFILE, key, value)
+        if key != "role_arn" and key != "source_profile" :
+            config.set(AWS_SSO_PROFILE, key, value)        
 
     _write_config(AWS_CONFIG_PATH, config)
     print("\nCredentials copied successfully") 

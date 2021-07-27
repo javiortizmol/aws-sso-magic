@@ -7,8 +7,7 @@
 *.war
 
 # Local paths
-dist/*.whl
-dist/*.tar.gz
+dist/*
 
 # Large media files
 *.mp4
