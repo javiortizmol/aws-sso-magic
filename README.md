@@ -76,7 +76,8 @@ These steps will create the config files on the paths $HOME/.aws and $HOME/.aws-
 1. Execute the following command to select and log into the aws accounts: `aws-sso-magic login`
 2. Execute the following command to log: `aws-sso-magic login` and select the profile to use or `aws-sso-magic login --profile ssoprofile` if you already know the profile name.
 
-NOTE: If you don't want to copy the credentials to the default profile, you can use the --custom-profile flag to create the profile with the name that you prefer and copy the credentials there. Eg: `aws-sso-magic login --profile ssoprofile --custom-profile myprofile`
+NOTE: If you don't want to copy the credentials to the default profile, you can use the --custom-profile flag to create the profile with the name that you prefer and copy the credentials there. 
+Eg: `aws-sso-magic login --profile ssoprofile --custom-profile myprofile`
 
 
 ## How to use it for eks support
