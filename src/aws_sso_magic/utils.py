@@ -43,6 +43,7 @@ AWS_SSO_DEFAULT_PROXY_ROLE_KEY="proxy_role_name"
 AWS_SSO_PROFILE_IN_USE = "ProfileInUse"
 AWS_SSO_CONFIG_ALIAS = "AliasAccounts"
 AWS_SSO_EKS_ROLE_NAME_DEFAULT = "replacethis"
+AWS_DEFAULT_PROFILE = 'default'
 AWS_DEFAULT_REGION = 'us-east-1'
 VERBOSE = True
 
@@ -215,9 +216,11 @@ class Printer:
 
 # Check Utils
 
-def _check_flag_combinations(eks, profile_arg, cluster_arg, eks_profile_arg):
+def _check_flag_combinations(eks, profile_arg, cluster_arg, eks_profile_arg, custom_profile_arg):
     if eks and profile_arg != None:
-        _print_error(f"\nERROR: Not use the flag combination --eks --profile")    
+        _print_error(f"\nERROR: Not use the flag combination --eks --profile") 
+    if eks and custom_profile_arg != None:
+        _print_error(f"\nERROR: Not use the flag combination --eks --custom-profile")             
     if not eks and cluster_arg != None:
         _print_error(f"\nERROR: Not use the flag combination login --cluster")
     if not eks and eks_profile_arg != None:
@@ -409,17 +412,17 @@ class Colour:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-def _set_profile_credentials(profile_name, default_profile):
+def _set_profile_credentials(profile_name, default_profile, custom_profile_name):
     profile_opts = _get_aws_profile(profile_name)
     cache_login = _get_sso_cached_login(profile_opts)
     credentials = _get_sso_role_credentials(profile_opts, cache_login)
-    if default_profile == 'default':
-        _store_aws_credentials(default_profile, profile_opts, credentials)
+    if default_profile == True:
+        _store_aws_credentials(AWS_DEFAULT_PROFILE, profile_opts, credentials)
         _store_aws_credentials(AWS_SSO_PROFILE, profile_opts, credentials)
         _copy_to_default_profile(profile_name)
         _copy_to_aws_sso_profile(profile_name)
     else:
-        _store_aws_credentials(profile_name, profile_opts, credentials)
+        _store_aws_credentials(custom_profile_name, profile_opts, credentials)
 
 def _get_role_arn(profile_name, role_name):
     account_id = _get_account_id_profile(AWS_CONFIG_PATH, profile_name)
@@ -507,14 +510,14 @@ def _copy_to_default_profile(profile_name):
 
     config = _read_config(AWS_CONFIG_PATH)
 
-    if config.has_section('default'):
-        config.remove_section('default')
+    if config.has_section(AWS_DEFAULT_PROFILE):
+        config.remove_section(AWS_DEFAULT_PROFILE)
 
-    config.add_section('default')
+    config.add_section(AWS_DEFAULT_PROFILE)
 
     for key, value in config.items(profile_name):
         if key != "role_arn" and key != "source_profile" :
-            config.set('default', key, value)
+            config.set(AWS_DEFAULT_PROFILE, key, value)
 
     _write_config(AWS_CONFIG_PATH, config)
     print("\nCredentials copied successfully") 
@@ -582,7 +585,7 @@ def _store_aws_credentials(profile_name, profile_opts, credentials):
     _write_config(AWS_CREDENTIAL_PATH, config)
 
 def _add_prefix(name):
-    return f'profile {name}' if name != 'default' else 'default'
+    return f'profile {name}' if name != AWS_DEFAULT_PROFILE else AWS_DEFAULT_PROFILE
 
 def _print_colour(colour, message, always=False):
     if always or VERBOSE:

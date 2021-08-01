@@ -74,12 +74,15 @@ These steps will create the config files on the paths $HOME/.aws and $HOME/.aws-
 ## How to use it
 
 1. Execute the following command to select and log into the aws accounts: `aws-sso-magic login`
-3. Execute the following command to log: `aws-sso-magic login` and select the profile to use or `aws-sso-login login --profile myprofile` if you already know the profile name.
+2. Execute the following command to log: `aws-sso-magic login` and select the profile to use or `aws-sso-magic login --profile ssoprofile` if you already know the profile name.
+
+NOTE: If you don't want to copy the credentials to the default profile, you can use the --custom-profile flag to create the profile with the name that you prefer and copy the credentials there. Eg: `aws-sso-magic login --profile ssoprofile --custom-profile myprofile`
+
 
 ## How to use it for eks support
 ### - Prerequisites
 1. [kubectl](https://kubernetes.io/docs/tasks/tools/) installed.
-2. `aws-sso-magic login` or `aws-sso-login login --profile myprofile` executed previouly.
+2. `aws-sso-magic login` or `aws-sso-magic login --profile myprofile` executed previouly.
 
 ### - Instructions
 1. Go to the file $HOME/.aws-sso-magic/config and replace the string "replacethis" on the section default-proxy-role-name if you want to use that role name for all profiles.

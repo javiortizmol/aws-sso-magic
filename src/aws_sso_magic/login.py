@@ -33,7 +33,6 @@ from .utils import (
     AWS_SSO_CONFIG_ALIAS,
     AWS_SSO_CONFIG_PATH,
     AWS_DEFAULT_REGION,
-    AWS_SSO_PROFILE,
     VERBOSE
 )
 
@@ -55,6 +54,7 @@ ConfigParams = namedtuple("ConfigParams", ["profile_name", "account_name", "acco
 @click.command()
 @click.option("--eks", is_flag=True, help="The flag to use for the update-kubeconfig")
 @click.option("--profile", "profile_arg", help="The main profile name to use")
+@click.option("--custom-profile", "custom_profile_arg", help="The profile name to copy the aws sso credentials")
 @click.option("--eks-profile", "eks_profile_arg", help="The eks profile name to use")
 @click.option("--cluster", "cluster_arg", help="The eks cluster name to use, this argument is only allowed using the --eks flag")
 @click.option("--sso-start-url", "-u", metavar="URL", help="Your AWS SSO start URL")
@@ -77,6 +77,7 @@ ConfigParams = namedtuple("ConfigParams", ["profile_name", "account_name", "acco
 def login(
         eks,
         profile_arg,
+        custom_profile_arg,
         eks_profile_arg,
         cluster_arg,
         sso_start_url,
@@ -101,7 +102,7 @@ def login(
     as all profiles sharing the same start URL will share the same login.
     """
     configure_logging(LOGGER, verbose)
-    _check_flag_combinations(eks, profile_arg, cluster_arg, eks_profile_arg)
+    _check_flag_combinations(eks, profile_arg, cluster_arg, eks_profile_arg, custom_profile_arg)
     _check_aws_v2()
 
     missing = []
@@ -292,17 +293,19 @@ def login(
 
     global VERBOSE
 
-    default_profile = 'default'
+    default_profile = True
 
     _create_credentials_profile(configs)
 
     if not eks:
         if profile_arg == None:
-            profile = _add_prefix(get_config_profile_list())
+            profile_name = _add_prefix(get_config_profile_list())
         else:
-            profile = _add_prefix(profile_arg)
-        _set_profile_credentials(profile, default_profile)
-        _set_profile_in_use(profile)
+            profile_name = _add_prefix(profile_arg)
+        if custom_profile_arg != None:
+            default_profile = False
+        _set_profile_credentials(profile_name, default_profile, custom_profile_arg)
+        _set_profile_in_use(profile_name)
     else:
         _eks_cluster_configuration(cluster_arg, eks_profile_arg)
 
