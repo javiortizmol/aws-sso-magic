@@ -48,6 +48,7 @@ full_upload(){
 }
 
 if [ "$1" == "build" ]; then
+    buid_path_delete
     build
 fi 
 
