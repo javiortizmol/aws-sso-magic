@@ -20,7 +20,8 @@ This solution mixed the following repositories:
 - [eks-login](utils/eks-login) - A script tool to add on the /usr/local/bin (Only for linux/macOS or Windows WSL).
     ```bash
     eks-login develop-readonly
-    ```     
+    ```
+NOTE: I got this interesting repo of [marianonamoroso](https://github.com/marianonamoroso), He developed an awesome shell script to get information from the eks cluster, for more details click on https://github.com/marianonamoroso/kubernetes, and heyy give to him an star :).
 #
 ## Installation 
 ### Using pyp installer
