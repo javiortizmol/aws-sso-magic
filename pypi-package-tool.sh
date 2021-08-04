@@ -13,6 +13,10 @@ build_folder="dist"
 build_path="$build_folder/*"
 python_version="python3"
 
+if [ "$1" == "" ]; then
+    echo "ERROR: Please send an option; build, test, upload. Eg: ./pypi-package-tool.sh upload"
+fi
+
 buid_path_delete(){
     if [ -d $build_folder ]; then
         echo "INFO: Deleting $build_folder"
