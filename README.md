@@ -63,8 +63,6 @@ These steps will create the config files on the paths $HOME/.aws and $HOME/.aws-
     making the above configuration, it will now show the aliases in the profile selection menu when aws-sso-magic login command is executed.
     ```
     [?] Please select an AWS config profile:    
-      aws-sso
-      default
       dev-admin
     > qa-admin 
       staging-admin   
