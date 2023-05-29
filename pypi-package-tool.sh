@@ -11,7 +11,7 @@ python_repo="pypi"
 python_test_repo="testpypi"
 build_folder="dist"
 build_path="$build_folder/*"
-python_version="python3"
+python_version="python3.9"
 
 if [ "$1" == "" ]; then
     echo "ERROR: Please send an option; build, test, upload. Eg: ./pypi-package-tool.sh upload"
