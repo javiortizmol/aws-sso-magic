@@ -12,6 +12,8 @@
 # language governing permissions and limitations under the License.
 
 import boto3
+import botocore
+from typing import Optional
 import hashlib
 import json
 import logging
@@ -31,6 +33,7 @@ from aws_sso_lib.compat import shell_join
 from aws_sso_lib.config import find_instances, SSOInstance
 from botocore.compat import compat_shell_split as shell_split
 from aws_sso_lib.config_file_writer import process_profile_name
+from botocore.exceptions import ProfileNotFound
 
 AWS_CONFIG_PATH = f'{Path.home()}/.aws/config'
 AWS_CREDENTIAL_PATH = f'{Path.home()}/.aws/credentials'
@@ -108,9 +111,38 @@ def configure_logging(logger, verbose, **config_args):
 class GetInstanceError(Exception):
     pass
 
-def get_instance(sso_start_url, sso_region, sso_start_url_vars=None, sso_region_vars=None):
+def get_sso_sessions():
+    sso_sessions = []
+    config = _read_config(AWS_CONFIG_PATH)
+    for section in config.sections():
+        if "sso-session" in section:
+            section_name = _get_section_name(section, "sso-session ")
+            sso_sessions.append(section_name)
+    sso_sessions.sort()
+    questions = [{
+        'type': 'list',
+        'name': 'name',
+        'message': 'Please select an AWS SSO profile',
+        'choices': sso_sessions
+    }]
+
+    answer = prompt(questions)    
+    return answer.get('name')
+
+def get_sso_details(profile_name):
+    config_sso_profile = _read_section_configuration(AWS_CONFIG_PATH, f"sso-session {profile_name}")
+    sso_start_url = config_sso_profile.get("sso_start_url")
+    sso_region = config_sso_profile.get("sso_region")
+    print(f"sso_region: {sso_region}")
+    add_new_key_value_conf_file(AWS_CONFIG_PATH, f"profile {profile_name}", "sso_start_url", sso_start_url)
+    add_new_key_value_conf_file(AWS_CONFIG_PATH, f"profile {profile_name}", "sso_region", sso_region)
+    return sso_start_url, sso_region
+
+def get_instance(sso_start_url, sso_region, sso_start_url_vars=None, sso_region_vars=None, profile_name=None):
+    profile_name = get_sso_sessions()
+    sso_start_url, sso_region = get_sso_details(profile_name)
     instances, specifier, all_instances = find_instances(
-        profile_name=None,
+        profile_name=profile_name,
         profile_source=None,
         start_url=sso_start_url,
         start_url_source="CLI input",
@@ -119,7 +151,6 @@ def get_instance(sso_start_url, sso_region, sso_start_url_vars=None, sso_region_
         start_url_vars=sso_start_url_vars,
         region_vars=sso_region_vars
     )
-
     if not instances:
         if all_instances:
             raise GetInstanceError(
@@ -131,7 +162,7 @@ def get_instance(sso_start_url, sso_region, sso_start_url_vars=None, sso_region_
     if len(instances) > 1:
         raise GetInstanceError(f"Found {len(instances)} SSO instance, please specify one: {SSOInstance.to_strs(instances)}")
 
-    return instances[0]
+    return instances[0], profile_name
 
 class Printer:
     def __init__(self, *,
@@ -342,19 +373,30 @@ def get_trim_formatter(account_name_patterns, role_name_patterns, formatter):
 def get_safe_account_name(name):
     return re.sub(r"[\s\[\]]+", "-", name).strip("-")
 
+def _get_section_name(section_name, string_to_seach):
+    section = str(section_name).replace(string_to_seach,'')
+    return section 
+
 def _get_profile_name(profile):
     profile = str(profile).replace('profile ','')
     return profile 
 
-def _select_profile():
-    config = _read_config(AWS_CONFIG_PATH)
-
+def _profile_filter(sso_session):
     profiles = []
+    config = _read_config(AWS_CONFIG_PATH)
+    config_sso_profile = _read_section_configuration(AWS_CONFIG_PATH, f"sso-session {sso_session}")
+    sso_start_url_selected = config_sso_profile.get("sso_start_url")
     for section in config.sections():
-        x = _get_profile_name(section)
-        profiles.append(x)
+        profile = _read_section_configuration(AWS_CONFIG_PATH, f"profile {sso_session}")
+        if sso_start_url_selected in profile.get("sso_start_url"):
+            if sso_session not in section and "aws-sso" not in section and "default" not in section:
+                x = _get_profile_name(section)
+                profiles.append(x)
     profiles.sort()
+    return profiles
 
+def _select_profile(sso_session):
+    profiles = _profile_filter(sso_session)
     questions = [{
         'type': 'list',
         'name': 'name',
@@ -365,9 +407,9 @@ def _select_profile():
     answer = prompt(questions)
     return answer['name'] if answer else sys.exit(1)
 
-def get_config_profile_list():
+def get_config_profile_list(sso_session):
     configure_logging(LOGGER, False)
-    answer = _select_profile()
+    answer = _select_profile(sso_session)
     return answer
 
 def _get_account_id_profile(path, profile_name):
@@ -713,3 +755,8 @@ def _create_aws_sso_conf_file(configfile_name):
         Config.write(cfgfile)
         cfgfile.close()
         print(f"{configfile_name} file created")
+
+def add_new_key_value_conf_file(configfile_name, section_name, key, value):
+    config = _read_config(configfile_name)
+    config.set(section_name, key, value)
+    _write_config(configfile_name, config)
