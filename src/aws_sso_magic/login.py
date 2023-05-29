@@ -108,11 +108,12 @@ def login(
     missing = []
 
     try:
-        instance = get_instance(
+        instance, sso_session_selected = get_instance(
             sso_start_url,
             sso_region,
             sso_start_url_vars=CONFIGURE_DEFAULT_START_URL_VARS,
-            sso_region_vars=CONFIGURE_DEFAULT_SSO_REGION_VARS,)
+            sso_region_vars=CONFIGURE_DEFAULT_SSO_REGION_VARS,
+            profile_name=profile_arg)
     except GetInstanceError as e:
         LOGGER.fatal(str(e))
         sys.exit(1)
@@ -299,7 +300,7 @@ def login(
 
     if not eks:
         if profile_arg == None:
-            profile_name = _add_prefix(get_config_profile_list())
+            profile_name = _add_prefix(get_config_profile_list(sso_session_selected))
         else:
             profile_name = _add_prefix(profile_arg)
         if custom_profile_arg != None:
